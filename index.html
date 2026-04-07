@@ -3,28 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 居家照護雲端系統 V9</title>
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    // 您的 Firebase 配置
-    const firebaseConfig = {
-        apiKey: "AIzaSyCULwGimLD9WPD8caxI60W1n-32aauzelY",
-        authDomain: "mycareapp-5d863.firebaseapp.com",
-        projectId: "mycareapp-5d863",
-        storageBucket: "mycareapp-5d863.firebasestorage.app",
-        messagingSenderId: "735542847264",
-        appId: "1:735542847264:web:f6ab950197234a58f45945",
-        measurementId: "G-1DWH3QNXDD"
-    };
-
-    // 初始化 Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    window.careDB = { db, ref, set, onValue, push, remove };
-</script>
+<title>2026 居家照護專業系統 V8</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
@@ -33,21 +12,30 @@
         --morandi-green: #8BA8A1;  --morandi-green-dark: #6B847D; --morandi-green-deep: #4A5F59; --morandi-green-light: #F2F6F5;
         --morandi-purple: #9692AF; --morandi-purple-dark: #706B8F; --morandi-purple-deep: #54506B; --morandi-purple-light: #F4F3F7;
         --morandi-yellow: #CDBE9A; --morandi-yellow-light: #FAF8F2;
-        --morandi-bg: #EAECEB; --text-dark: #4A4A4A;
+        --morandi-bg: #EAECEB;
+        --text-dark: #4A4A4A;
     }
+
     * { box-sizing: border-box; font-family: -apple-system, "Noto Sans TC", sans-serif; }
     body { background-color: var(--morandi-bg); margin: 0; padding: 20px; color: var(--text-dark); display: flex; justify-content: center; }
     .app-container { width: 100%; max-width: 850px; }
+
+    /* 日期導航 */
     .header-nav { background: #DDE2E0; padding: 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     input[type="date"] { padding: 8px; border-radius: 12px; border: none; background: rgba(255,255,255,0.5); font-weight: bold; color: #5E716B; }
+
+    /* 通用卡片 */
     .card { background: white; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); overflow: hidden; }
     .card-body { padding: 20px 25px; }
     .section-title { text-align: center; font-size: 1.2rem; font-weight: bold; margin: 15px 0; display: block; }
+    
     .border-red { border-left: 10px solid var(--morandi-red); background-color: var(--morandi-red-light); }
     .border-blue { border-left: 10px solid var(--morandi-blue); background-color: var(--morandi-blue-light); }
     .border-green { border-left: 10px solid var(--morandi-green); background-color: var(--morandi-green-light); }
     .border-purple { border-left: 10px solid var(--morandi-purple); background-color: var(--morandi-purple-light); }
     .border-yellow { border-left: 10px solid var(--morandi-yellow); background-color: var(--morandi-yellow-light); }
+
+    /* 按鈕 */
     .btn { padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; font-size: 0.95rem; transition: 0.3s; color: white; width: 100%; margin: 5px 0; }
     .btn-edit-blue { background-color: var(--morandi-blue-dark); width: auto; align-self: flex-end; }
     .btn-save-blue { background-color: var(--morandi-blue-deep); }
@@ -56,20 +44,29 @@
     .btn-edit-purple { background-color: var(--morandi-purple-dark); width: auto; align-self: flex-end; }
     .btn-save-purple { background-color: var(--morandi-purple-deep); }
     .btn-rose { background-color: var(--morandi-red); }
+
     .role-chip { padding: 4px 12px; border-radius: 15px; background: white; border: 1px solid #ddd; font-size: 0.85rem; cursor: pointer; margin: 2px; display: inline-block; }
     .role-chip.active-red { background: var(--morandi-red); color: white; }
     .role-chip.active-yellow { background: #8B7355; color: white; }
+
+    /* 滾動區域 */
     .scroll-container { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; }
-    .post-it { flex: 0 0 260px; padding: 15px; border-radius: 15px; background: white; box-shadow: 2px 4px 8px rgba(0,0,0,0.05); }
+    .post-it { flex: 0 0 260px; padding: 15px; border-radius: 15px; background: white; box-shadow: 2px 4px 8px rgba(0,0,0,0.05); position: relative; }
+
+    /* 輸入網格與鎖定狀態 */
     .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
     .input-group label { font-weight: bold; display: block; margin-bottom: 5px; color: var(--morandi-blue-deep); }
     .input-group input { width: 100%; padding: 12px; border-radius: 15px; border: 1px solid #D1D9E0; }
     .is-locked { pointer-events: none; opacity: 0.7; background-color: #f8f8f8 !important; }
+
+    /* 藥物區專用 */
     .med-tab-group { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
     .med-tab { padding: 8px 20px; border-radius: 20px; border: 1px solid var(--morandi-purple); cursor: pointer; color: var(--morandi-purple); font-weight: bold; }
     .med-tab.active { background: var(--morandi-purple); color: white; }
     .med-display-box { background: white; border-radius: 15px; padding: 15px; min-height: 60px; border: 1px solid #ddd; margin-bottom: 15px; }
     .med-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+
+    /* 復健切換 */
     .rehab-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
     .toggle { position: relative; width: 50px; height: 28px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
@@ -80,15 +77,19 @@
 </style>
 </head>
 <body>
+
 <div class="app-container">
     <div class="header-nav">
         <button onclick="changeDate(-1)" style="border:none; background:none; cursor:pointer; font-weight:bold;">◀ 前一天</button>
-        <div style="text-align:center"><input type="date" id="date-picker"><div id="weekday-text" style="font-size:0.8rem; color:#666;"></div></div>
+        <div style="text-align:center">
+            <input type="date" id="date-picker" onchange="loadDateData()">
+            <div id="weekday-text" style="font-size:0.8rem; color:#666;"></div>
+        </div>
         <button onclick="changeDate(1)" style="border:none; background:none; cursor:pointer; font-weight:bold;">後一天 ▶</button>
     </div>
 
     <div class="card border-red">
-        <h3 class="section-title" style="color:var(--morandi-red)">📢 重要事項公佈欄 (雲端同步) 📢</h3>
+        <h3 class="section-title" style="color:var(--morandi-red)">📢 重要事項公佈欄 (交流區) 📢</h3>
         <div class="card-body">
             <div class="scroll-container" id="notice-list"></div>
             <div style="margin-top:15px; border-top:1px solid #E2D2D2; padding-top:15px;">
@@ -116,7 +117,8 @@
                 <div class="input-group"><label>小號</label><input type="number" id="v-urine"></div>
             </div>
             <button class="btn btn-save-blue" onclick="saveVitalData()" style="margin-top:15px;">✔ 儲存當日數值</button>
-            <hr style="width:100%; margin:20px 0; border:0; border-top:1px solid #ddd;"><canvas id="trendChart" style="max-height:250px;"></canvas>
+            <hr style="width:100%; margin:20px 0; border:0; border-top:1px solid #ddd;">
+            <canvas id="trendChart" style="max-height:250px;"></canvas>
         </div>
     </div>
 
@@ -124,17 +126,23 @@
         <h3 class="section-title" style="color:var(--morandi-purple-dark)">💊 藥物紀錄 💊</h3>
         <div class="card-body" style="display:flex; flex-direction:column;">
             <button class="btn btn-edit-purple" onclick="unlock('med-action-area')">✎ 編輯藥物項目</button>
+            
             <div class="med-tab-group" style="margin-top:15px;">
                 <div class="med-tab active" onclick="switchMedTab(this, '早')">早上</div>
                 <div class="med-tab" onclick="switchMedTab(this, '中')">中午</div>
                 <div class="med-tab" onclick="switchMedTab(this, '晚')">晚上</div>
             </div>
-            <div class="med-display-box" id="med-display-list"></div>
+
+            <div class="med-display-box" id="med-display-list">
+                </div>
+
             <div id="med-action-area" class="is-locked" style="border-top:1px solid #E0DDE6; padding-top:15px;">
-                <div style="font-size:0.85rem; color:var(--morandi-purple-dark); margin-bottom:10px;">請點選藥物發佈：</div>
+                <div style="font-size:0.85rem; color:var(--morandi-purple-dark); margin-bottom:10px;">請點選藥物發佈至該時段：</div>
                 <div>
-                    <span class="role-chip" onclick="publishMed('血壓藥')">血壓藥</span><span class="role-chip" onclick="publishMed('胃藥')">胃藥</span>
-                    <span class="role-chip" onclick="publishMed('維他命')">維他命</span><span class="role-chip" onclick="publishMed('助眠藥')">助眠藥</span>
+                    <span class="role-chip" onclick="publishMed('血壓藥')">血壓藥</span>
+                    <span class="role-chip" onclick="publishMed('胃藥')">胃藥</span>
+                    <span class="role-chip" onclick="publishMed('維他命')">維他命</span>
+                    <span class="role-chip" onclick="publishMed('助眠藥')">助眠藥</span>
                     <span class="role-chip" onclick="publishMed('止痛藥')">止痛藥</span>
                 </div>
             </div>
@@ -146,7 +154,8 @@
         <h3 class="section-title" style="color:var(--morandi-green-dark)">💪 復健紀錄 💪</h3>
         <div class="card-body" style="display:flex; flex-direction:column;">
             <button class="btn btn-edit-green" onclick="unlock('rehab-grid')">✎ 編輯紀錄</button>
-            <div id="rehab-grid" class="is-locked" style="margin-top:15px;">
+            <p style="text-align:center; font-size:0.85rem; color:var(--morandi-green-dark); margin:10px 0;">✨ 復健一天最好三次 ✨</p>
+            <div id="rehab-grid" class="is-locked">
                 <div class="rehab-row"><span>早上：口腔肌肉、頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m"><span class="slider"></span></label></div>
                 <div class="rehab-row"><span>中午：口腔肌肉、關節活動</span><label class="toggle"><input type="checkbox" id="r-n"><span class="slider"></span></label></div>
                 <div class="rehab-row"><span>晚上：口腔肌肉、頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e"><span class="slider"></span></label></div>
@@ -172,76 +181,61 @@
 
 <script>
     let curNoticeRole = "", curNoteRole = "", chartInstance = null;
-    let currentMedTab = "早", tempMedList = [];
-    const datePicker = document.getElementById('date-picker');
+    let currentMedTab = "早";
+    let tempMedList = []; 
 
     window.onload = () => {
-        const checkFirebase = setInterval(() => {
-            if (window.careDB) {
-                clearInterval(checkFirebase);
-                initApp();
-            }
-        }, 100);
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date-picker').value = today;
+        loadDateData();
     };
 
-    function initApp() {
-        datePicker.value = new Date().toISOString().split('T')[0];
-        datePicker.addEventListener('change', loadDateData);
-        loadDateData();
-        listenToPosts('notice');
-        listenToPosts('note');
+    function loadDateData() {
+        const date = document.getElementById('date-picker').value;
+        const dt = new Date(date);
+        const weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+        document.getElementById('weekday-text').innerText = weeks[dt.getDay()];
+        
+        const saved = JSON.parse(localStorage.getItem('care_v8_' + date)) || {};
+        
+        // 生理數值加載
+        document.getElementById('v-bp').value = saved.bp || "";
+        document.getElementById('v-hr').value = saved.hr || "";
+        document.getElementById('v-temp').value = saved.temp || "";
+        document.getElementById('v-water').value = saved.water || "";
+        document.getElementById('v-stool').value = saved.stool || "";
+        document.getElementById('v-urine').value = saved.urine || "";
+        document.getElementById('vital-grid').classList.add('is-locked');
+
+        // 復健加載
+        document.getElementById('r-m').checked = saved.rm || false;
+        document.getElementById('r-n').checked = saved.rn || false;
+        document.getElementById('r-e').checked = saved.re || false;
+        document.getElementById('rehab-grid').classList.add('is-locked');
+
+        // 藥物加載
+        tempMedList = saved.meds || [];
+        renderMeds();
+        document.getElementById('med-action-area').classList.add('is-locked');
+
+        renderPosts('notice'); renderPosts('note'); updateChart();
     }
 
-    function loadDateData() {
-        const date = datePicker.value;
-        const weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
-        document.getElementById('weekday-text').innerText = weeks[new Date(date).getDay()];
-
-        const { db, ref, onValue } = window.careDB;
-        onValue(ref(db, 'dailyRecords/' + date), (snapshot) => {
-            const data = snapshot.val() || {};
-            document.getElementById('v-bp').value = data.bp || "";
-            document.getElementById('v-hr').value = data.hr || "";
-            document.getElementById('v-temp').value = data.temp || "";
-            document.getElementById('v-water').value = data.water || "";
-            document.getElementById('v-stool').value = data.stool || "";
-            document.getElementById('v-urine').value = data.urine || "";
-            document.getElementById('r-m').checked = data.rm || false;
-            document.getElementById('r-n').checked = data.rn || false;
-            document.getElementById('r-e').checked = data.re || false;
-            tempMedList = data.meds || [];
-            renderMeds();
-            updateChart();
-        });
-        document.querySelectorAll('.is-locked').forEach(el => el.classList.add('is-locked'));
+    function changeDate(n) {
+        let d = new Date(document.getElementById('date-picker').value);
+        d.setDate(d.getDate() + n);
+        document.getElementById('date-picker').value = d.toISOString().split('T')[0];
+        loadDateData();
     }
 
     function unlock(id) { document.getElementById(id).classList.remove('is-locked'); }
 
-    function saveVitalData() {
-        const { db, ref, set } = window.careDB;
-        const date = datePicker.value;
-        set(ref(db, `dailyRecords/${date}/bp`), document.getElementById('v-bp').value);
-        set(ref(db, `dailyRecords/${date}/hr`), document.getElementById('v-hr').value);
-        set(ref(db, `dailyRecords/${date}/temp`), document.getElementById('v-temp').value);
-        set(ref(db, `dailyRecords/${date}/water`), document.getElementById('v-water').value);
-        set(ref(db, `dailyRecords/${date}/stool`), document.getElementById('v-stool').value);
-        set(ref(db, `dailyRecords/${date}/urine`), document.getElementById('v-urine').value);
-        alert("生理數據已同步至雲端");
-    }
-
-    function saveRehabData() {
-        const { db, ref, set } = window.careDB;
-        const date = datePicker.value;
-        set(ref(db, `dailyRecords/${date}/rm`), document.getElementById('r-m').checked);
-        set(ref(db, `dailyRecords/${date}/rn`), document.getElementById('r-n').checked);
-        set(ref(db, `dailyRecords/${date}/re`), document.getElementById('r-e').checked);
-        alert("復健進度已同步");
-    }
-
+    // --- 藥物區邏輯 ---
     function switchMedTab(el, time) {
         document.querySelectorAll('.med-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active'); currentMedTab = time; renderMeds();
+        el.classList.add('active');
+        currentMedTab = time;
+        renderMeds();
     }
 
     function publishMed(name) {
@@ -253,33 +247,83 @@
         const listArea = document.getElementById('med-display-list');
         const filtered = tempMedList.filter(m => m.timeTag === currentMedTab);
         listArea.innerHTML = filtered.map(m => `
-            <div class="med-item"><span>● ${m.name}</span><button onclick="removeMed(${m.id})" style="background:none;border:none;color:red;cursor:pointer;">✕</button></div>
-        `).join('') || `<div style="color:#aaa;text-align:center;padding:10px;">${currentMedTab}無紀錄</div>`;
+            <div class="med-item">
+                <span>● ${m.name}</span>
+                <button onclick="removeMed(${m.id})" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
+            </div>
+        `).join('') || `<div style="color:#aaa; text-align:center; padding:10px;">${currentMedTab}無紀錄</div>`;
     }
 
     function removeMed(id) {
-        tempMedList = tempMedList.filter(m => m.id !== id); renderMeds();
+        tempMedList = tempMedList.filter(m => m.id !== id);
+        renderMeds();
     }
 
     function saveMedData() {
-        const { db, ref, set } = window.careDB;
-        set(ref(db, `dailyRecords/${datePicker.value}/meds`), tempMedList);
-        alert("用藥紀錄已同步");
+        const date = document.getElementById('date-picker').value;
+        let data = JSON.parse(localStorage.getItem('care_v8_' + date)) || {};
+        data.meds = tempMedList;
+        localStorage.setItem('care_v8_' + date, JSON.stringify(data));
+        document.getElementById('med-action-area').classList.add('is-locked');
+        alert("藥物紀錄已儲存");
     }
 
-    function listenToPosts(type) {
-        const { db, ref, onValue } = window.careDB;
-        onValue(ref(db, 'posts/' + type), (snapshot) => {
-            const data = snapshot.val() || {};
-            const posts = Object.keys(data).map(key => ({...data[key], fbKey: key})).reverse();
-            document.getElementById(type + '-list').innerHTML = posts.map(p => `
-                <div class="post-it" style="background:${type==='note'?'#FFFDF5':'white'}; flex:0 0 260px; padding:15px; border-radius:15px; box-shadow:2px 4px 8px rgba(0,0,0,0.05);">
-                    <span style="font-size:0.7rem; color:#888;">${p.time}<br>發布者：${p.role}</span>
-                    <div style="margin:8px 0; font-size:0.95rem;">${p.text}</div>
-                    <button onclick="deletePost('${type}', '${p.fbKey}')" style="font-size:0.7rem; cursor:pointer; background:none; border:1px solid #ccc; border-radius:5px;">刪除</button>
-                </div>
-            `).join('');
+    // --- 生理與復健儲存 ---
+    function saveVitalData() {
+        const date = document.getElementById('date-picker').value;
+        let data = JSON.parse(localStorage.getItem('care_v8_' + date)) || {};
+        data.bp = document.getElementById('v-bp').value;
+        data.hr = document.getElementById('v-hr').value;
+        data.temp = document.getElementById('v-temp').value;
+        data.water = document.getElementById('v-water').value;
+        data.stool = document.getElementById('v-stool').value;
+        data.urine = document.getElementById('v-urine').value;
+        localStorage.setItem('care_v8_' + date, JSON.stringify(data));
+        document.getElementById('vital-grid').classList.add('is-locked');
+        updateChart(); alert("生理數值已儲存");
+    }
+
+    function saveRehabData() {
+        const date = document.getElementById('date-picker').value;
+        let data = JSON.parse(localStorage.getItem('care_v8_' + date)) || {};
+        data.rm = document.getElementById('r-m').checked;
+        data.rn = document.getElementById('r-n').checked;
+        data.re = document.getElementById('r-e').checked;
+        localStorage.setItem('care_v8_' + date, JSON.stringify(data));
+        document.getElementById('rehab-grid').classList.add('is-locked');
+        alert("復健紀錄已儲存");
+    }
+
+    // --- 趨勢圖 (與V5一致) ---
+    function updateChart() {
+        const dateInput = document.getElementById('date-picker').value;
+        const currentMonth = dateInput.substring(0, 7);
+        const labels = [], bpData = [], hrData = [];
+        for(let i=1; i<=31; i++) {
+            const dStr = currentMonth + '-' + String(i).padStart(2, '0');
+            const dayData = JSON.parse(localStorage.getItem('care_v8_' + dStr));
+            if(dayData && dayData.bp) {
+                labels.push(i + '日');
+                bpData.push(parseInt(dayData.bp) || null);
+                hrData.push(parseInt(dayData.hr) || null);
+            }
+        }
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets: [
+                { label: '血壓', data: bpData, borderColor: '#B07D7D', tension: 0.3 },
+                { label: '心跳', data: hrData, borderColor: '#8DA1B9', tension: 0.3 }
+            ]}
         });
+    }
+
+    // --- 公佈欄與便利貼 (與V5一致) ---
+    function setRole(el, type) {
+        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red', 'active-yellow'));
+        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
+        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
     }
 
     function addPost(type) {
@@ -287,53 +331,31 @@
         if(!role) { alert("請選擇角色"); return; }
         const input = document.getElementById(type + '-input');
         if(!input.value) return;
-        const { db, ref, push } = window.careDB;
-        push(ref(db, 'posts/' + type), { role, text: input.value, time: new Date().toLocaleString() });
-        input.value = "";
+        let db = JSON.parse(localStorage.getItem(type + '_v8')) || [];
+        db.unshift({ id: Date.now(), role, text: input.value, time: new Date().toLocaleString() });
+        localStorage.setItem(type + '_v8', JSON.stringify(db));
+        input.value = ""; renderPosts(type);
     }
 
-    function deletePost(type, key) {
-        if(confirm("確定刪除此訊息？")) {
-            const { db, ref, remove } = window.careDB;
-            remove(ref(db, `posts/${type}/${key}`));
-        }
+    function renderPosts(type) {
+        const posts = JSON.parse(localStorage.getItem(type + '_v8')) || [];
+        document.getElementById(type + '-list').innerHTML = posts.map(p => `
+            <div class="post-it ${type === 'note' ? 'note' : ''}" style="padding:15px; border-radius:15px; background:white; box-shadow: 2px 4px 8px rgba(0,0,0,0.05); flex: 0 0 260px;">
+                <span style="font-size:0.7rem; color:#888;">${p.time}<br>發布者：${p.role}</span>
+                <div style="margin:8px 0; font-size:0.95rem;">${p.text}</div>
+                <button onclick="editPost('${type}', ${p.id})" style="font-size:0.7rem; cursor:pointer; background:none; border:1px solid #ccc; border-radius:5px;">編輯/刪除</button>
+            </div>
+        `).join('');
     }
 
-    function setRole(el, type) {
-        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red', 'active-yellow'));
-        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
-        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
-    }
-
-    function changeDate(n) {
-        let d = new Date(datePicker.value); d.setDate(d.getDate() + n);
-        datePicker.value = d.toISOString().split('T')[0]; loadDateData();
-    }
-
-    function updateChart() {
-        const { db, ref, onValue } = window.careDB;
-        onValue(ref(db, 'dailyRecords'), (snapshot) => {
-            const allData = snapshot.val() || {};
-            const currentMonth = datePicker.value.substring(0, 7);
-            const labels = [], bpData = [], hrData = [];
-            for(let i=1; i<=31; i++) {
-                const dStr = currentMonth + '-' + String(i).padStart(2, '0');
-                if(allData[dStr] && allData[dStr].bp) {
-                    labels.push(i + '日');
-                    bpData.push(parseInt(allData[dStr].bp) || null);
-                    hrData.push(parseInt(allData[dStr].hr) || null);
-                }
-            }
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            if(chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets: [
-                    { label: '血壓', data: bpData, borderColor: '#B07D7D', tension: 0.3 },
-                    { label: '心跳', data: hrData, borderColor: '#8DA1B9', tension: 0.3 }
-                ]}
-            });
-        });
+    function editPost(type, id) {
+        let db = JSON.parse(localStorage.getItem(type + '_v8'));
+        const post = db.find(p => p.id === id);
+        const next = prompt("修改內容 (留空則刪除)", post.text);
+        if(next === null) return;
+        if(next === "") db = db.filter(p => p.id !== id);
+        else post.text = next;
+        localStorage.setItem(type + '_v8', JSON.stringify(db)); renderPosts(type);
     }
 </script>
 </body>
