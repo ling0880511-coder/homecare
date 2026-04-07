@@ -29,17 +29,14 @@
     .border-purple { border-left: 10px solid var(--morandi-purple); background-color: var(--morandi-purple-light); }
     .border-yellow { border-left: 10px solid var(--morandi-yellow); background-color: var(--morandi-yellow-light); }
     .btn { padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; font-size: 0.95rem; transition: 0.3s; color: white; width: 100%; margin: 5px 0; }
-    .btn-edit-blue { background-color: var(--morandi-blue-dark); width: auto; align-self: flex-end; }
-    .btn-save-blue { background-color: var(--morandi-blue-deep); }
-    .btn-edit-green { background-color: var(--morandi-green-dark); width: auto; align-self: flex-end; }
-    .btn-save-green { background-color: var(--morandi-green-deep); }
-    .btn-edit-purple { background-color: var(--morandi-purple-dark); width: auto; align-self: flex-end; }
-    .btn-save-purple { background-color: var(--morandi-purple-deep); }
     .btn-rose { background-color: var(--morandi-red); }
+    .btn-save-blue { background-color: var(--morandi-blue-deep); }
+    .btn-save-purple { background-color: var(--morandi-purple-deep); }
+    .btn-save-green { background-color: var(--morandi-green-deep); }
     .role-chip { padding: 4px 12px; border-radius: 15px; background: white; border: 1px solid #ddd; font-size: 0.85rem; cursor: pointer; margin: 2px; display: inline-block; }
     .role-chip.active-red { background: var(--morandi-red); color: white; }
     .role-chip.active-yellow { background: #8B7355; color: white; }
-    .scroll-container { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; min-height: 100px; }
+    .scroll-container { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; }
     .post-it { flex: 0 0 260px; padding: 15px; border-radius: 15px; background: white; box-shadow: 2px 4px 8px rgba(0,0,0,0.05); position: relative; border: 1px solid #eee; }
     .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
     .input-group label { font-weight: bold; display: block; margin-bottom: 5px; color: var(--morandi-blue-deep); }
@@ -63,12 +60,12 @@
 
 <div class="app-container">
     <div class="header-nav">
-        <button onclick="changeDate(-1)" style="border:none; background:none; cursor:pointer; font-weight:bold;">◀ 前一天</button>
+        <button onclick="changeDate(-1)">◀ 前一天</button>
         <div style="text-align:center">
             <input type="date" id="date-picker">
             <div id="weekday-text" style="font-size:0.8rem; color:#666;"></div>
         </div>
-        <button onclick="changeDate(1)" style="border:none; background:none; cursor:pointer; font-weight:bold;">後一天 ▶</button>
+        <button onclick="changeDate(1)">後一天 ▶</button>
     </div>
 
     <div class="card border-red">
@@ -90,10 +87,229 @@
     <div class="card border-blue">
         <h3 class="section-title" style="color:var(--morandi-blue-dark)">📊 生理數值 📊</h3>
         <div class="card-body" style="display:flex; flex-direction:column;">
-            <button class="btn btn-edit-blue" onclick="unlock('vital-grid')">✎ 編輯數值</button>
+            <button class="btn btn" style="background:var(--morandi-blue-dark); width:auto; align-self:flex-end;" onclick="unlock('vital-grid')">✎ 編輯數值</button>
             <div class="input-grid is-locked" id="vital-grid" style="margin-top:15px;">
                 <div class="input-group"><label>血壓</label><input type="text" id="v-bp" placeholder="120/80"></div>
                 <div class="input-group"><label>心跳</label><input type="number" id="v-hr"></div>
                 <div class="input-group"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
                 <div class="input-group"><label>喝水量</label><input type="number" id="v-water"></div>
-                <div class="input-group"><label>大
+                <div class="input-group"><label>大號</label><input type="number" id="v-stool"></div>
+                <div class="input-group"><label>小號</label><input type="number" id="v-urine"></div>
+            </div>
+            <button class="btn btn-save-blue" onclick="saveVitalData()" style="margin-top:15px;">✔ 儲存並同步雲端</button>
+            <canvas id="trendChart" style="max-height:250px; margin-top:20px;"></canvas>
+        </div>
+    </div>
+
+    <div class="card border-purple">
+        <h3 class="section-title" style="color:var(--morandi-purple-dark)">💊 藥物紀錄 💊</h3>
+        <div class="card-body" style="display:flex; flex-direction:column;">
+            <button class="btn" style="background:var(--morandi-purple-dark); width:auto; align-self:flex-end;" onclick="unlock('med-action-area')">✎ 編輯藥物</button>
+            <div class="med-tab-group" style="margin-top:15px;">
+                <div class="med-tab active" onclick="switchMedTab(this, '早')">早上</div>
+                <div class="med-tab" onclick="switchMedTab(this, '中')">中午</div>
+                <div class="med-tab" onclick="switchMedTab(this, '晚')">晚上</div>
+            </div>
+            <div class="med-display-box" id="med-display-list"></div>
+            <div id="med-action-area" class="is-locked">
+                <span class="role-chip" onclick="publishMed('血壓藥')">血壓藥</span>
+                <span class="role-chip" onclick="publishMed('胃藥')">胃藥</span>
+                <span class="role-chip" onclick="publishMed('維他命')">維他命</span>
+                <span class="role-chip" onclick="publishMed('助眠藥')">助眠藥</span>
+                <span class="role-chip" onclick="publishMed('止痛藥')">止痛藥</span>
+            </div>
+            <button class="btn btn-save-purple" onclick="saveMedData()" style="margin-top:15px;">✔ 儲存藥物紀錄</button>
+        </div>
+    </div>
+
+    <div class="card border-green">
+        <h3 class="section-title" style="color:var(--morandi-green-dark)">💪 復健紀錄 💪</h3>
+        <div class="card-body" style="display:flex; flex-direction:column;">
+            <button class="btn" style="background:var(--morandi-green-dark); width:auto; align-self:flex-end;" onclick="unlock('rehab-grid')">✎ 編輯紀錄</button>
+            <div id="rehab-grid" class="is-locked">
+                <div class="rehab-row"><span>早上：口腔肌肉、頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m"><span class="slider"></span></label></div>
+                <div class="rehab-row"><span>中午：口腔肌肉、關節活動</span><label class="toggle"><input type="checkbox" id="r-n"><span class="slider"></span></label></div>
+                <div class="rehab-row"><span>晚上：口腔肌肉、頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e"><span class="slider"></span></label></div>
+            </div>
+            <button class="btn btn-save-green" onclick="saveRehabData()" style="margin-top:15px;">✔ 儲存復健狀態</button>
+        </div>
+    </div>
+
+    <div class="card border-yellow">
+        <h3 class="section-title" style="color:#8B7355">📝 備註便利貼 📝</h3>
+        <div class="card-body">
+            <div class="scroll-container" id="note-list"></div>
+            <div style="margin-top:15px; border-top:1px solid #E6D9BC; padding-top:15px;">
+                <div class="role-selector">
+                    <span class="role-chip" onclick="setRole(this, 'note')">媽媽</span><span class="role-chip" onclick="setRole(this, 'note')">爸爸</span><span class="role-chip" onclick="setRole(this, 'note')">溱</span><span class="role-chip" onclick="setRole(this, 'note')">琳</span><span class="role-chip" onclick="setRole(this, 'note')">瑄</span>
+                </div>
+                <textarea id="note-input" placeholder="輸入備註內容..." style="width:100%; padding:10px; border-radius:12px; border:1px solid #E6D9BC; min-height:80px;"></textarea>
+                <button class="btn" style="background:#8B7355; margin-top:10px;" onclick="addPost('note')">張貼便利貼</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC-9FQXNj-4wxUZdTe1utc52tkOut9VcYQ",
+        authDomain: "homecare-911f4.firebaseapp.com",
+        projectId: "homecare-911f4",
+        storageBucket: "homecare-911f4.firebasestorage.app",
+        messagingSenderId: "795225496783",
+        appId: "1:795225496783:web:7848a04b63d790e06b6bba"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let curNoticeRole = "", curNoteRole = "", chartInstance = null;
+    let currentMedTab = "早", tempMedList = [], unsubDaily = null;
+
+    window.onload = () => {
+        const today = new Date().toLocaleDateString('en-CA');
+        document.getElementById('date-picker').value = today;
+        initSync(today);
+        initBoardSync('notice');
+        initBoardSync('note');
+    };
+
+    document.getElementById('date-picker').onchange = (e) => initSync(e.target.value);
+
+    window.changeDate = (n) => {
+        let d = new Date(document.getElementById('date-picker').value);
+        d.setDate(d.getDate() + n);
+        const newDate = d.toLocaleDateString('en-CA');
+        document.getElementById('date-picker').value = newDate;
+        initSync(newDate);
+    };
+
+    function initSync(date) {
+        if (unsubDaily) unsubDaily();
+        const dt = new Date(date);
+        const weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+        document.getElementById('weekday-text').innerText = weeks[dt.getDay()];
+
+        unsubDaily = onSnapshot(doc(db, "daily_records", date), (docSnap) => {
+            if (docSnap.exists()) {
+                const d = docSnap.data();
+                document.getElementById('v-bp').value = d.bp || "";
+                document.getElementById('v-hr').value = d.hr || "";
+                document.getElementById('v-temp').value = d.temp || "";
+                document.getElementById('v-water').value = d.water || "";
+                document.getElementById('v-stool').value = d.stool || "";
+                document.getElementById('v-urine').value = d.urine || "";
+                document.getElementById('r-m').checked = d.rm || false;
+                document.getElementById('r-n').checked = d.rn || false;
+                document.getElementById('r-e').checked = d.re || false;
+                tempMedList = d.meds || [];
+                renderMeds();
+            } else {
+                document.querySelectorAll('input[type="text"], input[type="number"]').forEach(i => i.value = "");
+                document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
+                tempMedList = []; renderMeds();
+            }
+            updateChart();
+        });
+    }
+
+    function initBoardSync(type) {
+        const q = query(collection(db, type + "s"), orderBy("id", "desc"), limit(15));
+        onSnapshot(q, (snapshot) => {
+            const posts = [];
+            snapshot.forEach(doc => posts.push({ docId: doc.id, ...doc.data() }));
+            document.getElementById(type + '-list').innerHTML = posts.map(p => `
+                <div class="post-it">
+                    <span style="font-size:0.7rem; color:#888;">${p.time}<br>發布者：${p.role}</span>
+                    <div style="margin:8px 0; font-size:0.95rem; word-break:break-all;">${p.text}</div>
+                    <button onclick="deletePost('${type}', '${p.docId}')" style="font-size:0.7rem; cursor:pointer; background:none; border:1px solid #ffcccc; color:red; border-radius:5px;">刪除</button>
+                </div>
+            `).join('');
+        });
+    }
+
+    window.saveVitalData = async () => {
+        const date = document.getElementById('date-picker').value;
+        await setDoc(doc(db, "daily_records", date), {
+            bp: document.getElementById('v-bp').value,
+            hr: document.getElementById('v-hr').value,
+            temp: document.getElementById('v-temp').value,
+            water: document.getElementById('v-water').value,
+            stool: document.getElementById('v-stool').value,
+            urine: document.getElementById('v-urine').value
+        }, { merge: true });
+        document.getElementById('vital-grid').classList.add('is-locked');
+    };
+
+    window.saveRehabData = async () => {
+        const date = document.getElementById('date-picker').value;
+        await setDoc(doc(db, "daily_records", date), {
+            rm: document.getElementById('r-m').checked,
+            rn: document.getElementById('r-n').checked,
+            re: document.getElementById('r-e').checked
+        }, { merge: true });
+        document.getElementById('rehab-grid').classList.add('is-locked');
+    };
+
+    window.saveMedData = async () => {
+        const date = document.getElementById('date-picker').value;
+        await setDoc(doc(db, "daily_records", date), { meds: tempMedList }, { merge: true });
+        document.getElementById('med-action-area').classList.add('is-locked');
+    };
+
+    window.addPost = async (type) => {
+        const role = (type === 'notice') ? curNoticeRole : curNoteRole;
+        if(!role) { alert("請選擇角色"); return; }
+        const input = document.getElementById(type + '-input');
+        if(!input.value) return;
+        const newId = Date.now();
+        await setDoc(doc(collection(db, type + "s"), newId.toString()), {
+            id: newId, role, text: input.value, time: new Date().toLocaleString()
+        });
+        input.value = "";
+    };
+
+    window.deletePost = async (type, docId) => {
+        if(confirm("確定刪除嗎？")) await deleteDoc(doc(db, type + "s", docId));
+    };
+
+    window.unlock = (id) => document.getElementById(id).classList.remove('is-locked');
+    window.switchMedTab = (el, time) => {
+        document.querySelectorAll('.med-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        currentMedTab = time; renderMeds();
+    };
+    window.publishMed = (name) => { tempMedList.push({ id: Date.now(), timeTag: currentMedTab, name: name }); renderMeds(); };
+    window.removeMed = (id) => { tempMedList = tempMedList.filter(m => m.id !== id); renderMeds(); };
+    function renderMeds() {
+        const listArea = document.getElementById('med-display-list');
+        const filtered = tempMedList.filter(m => m.timeTag === currentMedTab);
+        listArea.innerHTML = filtered.map(m => `<div class="med-item"><span>● ${m.name}</span><button onclick="removeMed(${m.id})" style="background:none; border:none; color:red; cursor:pointer;">✕</button></div>`).join('') || `<div style="color:#aaa; text-align:center; padding:10px;">${currentMedTab}無紀錄</div>`;
+    }
+    window.setRole = (el, type) => {
+        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red', 'active-yellow'));
+        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
+        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
+    };
+
+    function updateChart() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { 
+                labels: ['今日紀錄'], 
+                datasets: [
+                    { label: '血壓', data: [parseInt(document.getElementById('v-bp').value) || 0], borderColor: '#B07D7D' },
+                    { label: '心跳', data: [parseInt(document.getElementById('v-hr').value) || 0], borderColor: '#8DA1B9' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+</script>
+</body>
+</html>
