@@ -33,9 +33,9 @@
     .btn-save-blue { background-color: var(--morandi-blue-deep); }
     .btn-save-purple { background-color: var(--morandi-purple-deep); }
     .btn-save-green { background-color: var(--morandi-green-deep); }
-    .role-chip { padding: 4px 12px; border-radius: 15px; background: white; border: 1px solid #ddd; font-size: 0.85rem; cursor: pointer; margin: 2px; display: inline-block; }
-    .role-chip.active-red { background: var(--morandi-red); color: white; }
-    .role-chip.active-yellow { background: #8B7355; color: white; }
+    .role-chip { padding: 6px 14px; border-radius: 15px; background: white; border: 1px solid #ddd; font-size: 0.85rem; cursor: pointer; margin: 3px; display: inline-block; }
+    .role-chip.active-red { background: var(--morandi-red); color: white; border-color: var(--morandi-red); }
+    .role-chip.active-yellow { background: #8B7355; color: white; border-color: #8B7355; }
     .scroll-container { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; }
     .post-it { flex: 0 0 260px; padding: 15px; border-radius: 15px; background: white; box-shadow: 2px 4px 8px rgba(0,0,0,0.05); position: relative; border: 1px solid #eee; }
     .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
@@ -60,12 +60,12 @@
 
 <div class="app-container">
     <div class="header-nav">
-        <button onclick="changeDate(-1)">◀ 前一天</button>
+        <button onclick="changeDate(-1)" style="border:none; background:none; cursor:pointer;">◀ 前一天</button>
         <div style="text-align:center">
             <input type="date" id="date-picker">
             <div id="weekday-text" style="font-size:0.8rem; color:#666;"></div>
         </div>
-        <button onclick="changeDate(1)">後一天 ▶</button>
+        <button onclick="changeDate(1)" style="border:none; background:none; cursor:pointer;">後一天 ▶</button>
     </div>
 
     <div class="card border-red">
@@ -73,8 +73,14 @@
         <div class="card-body">
             <div class="scroll-container" id="notice-list"></div>
             <div style="margin-top:15px; border-top:1px solid #E2D2D2; padding-top:15px;">
-                <div class="role-selector">
-                    <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span><span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span><span class="role-chip" onclick="setRole(this, 'notice')">溱</span><span class="role-chip" onclick="setRole(this, 'notice')">琳</span><span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
+                <div class="role-selector" style="margin-bottom:10px;">
+                    <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span>
+                    <span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span>
+                    <span class="role-chip" onclick="setRole(this, 'notice')">叔叔</span>
+                    <span class="role-chip" onclick="setRole(this, 'notice')">嬸嬸</span>
+                    <span class="role-chip" onclick="setRole(this, 'notice')">溱</span>
+                    <span class="role-chip" onclick="setRole(this, 'notice')">琳</span>
+                    <span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
                 </div>
                 <div style="display:flex; gap:8px;">
                     <input type="text" id="notice-input" placeholder="新增公佈事項..." style="flex:1; padding:10px; border-radius:12px; border:1px solid #ddd;">
@@ -140,8 +146,14 @@
         <div class="card-body">
             <div class="scroll-container" id="note-list"></div>
             <div style="margin-top:15px; border-top:1px solid #E6D9BC; padding-top:15px;">
-                <div class="role-selector">
-                    <span class="role-chip" onclick="setRole(this, 'note')">媽媽</span><span class="role-chip" onclick="setRole(this, 'note')">爸爸</span><span class="role-chip" onclick="setRole(this, 'note')">溱</span><span class="role-chip" onclick="setRole(this, 'note')">琳</span><span class="role-chip" onclick="setRole(this, 'note')">瑄</span>
+                <div class="role-selector" style="margin-bottom:10px;">
+                    <span class="role-chip" onclick="setRole(this, 'note')">媽媽</span>
+                    <span class="role-chip" onclick="setRole(this, 'note')">爸爸</span>
+                    <span class="role-chip" onclick="setRole(this, 'note')">叔叔</span>
+                    <span class="role-chip" onclick="setRole(this, 'note')">嬸嬸</span>
+                    <span class="role-chip" onclick="setRole(this, 'note')">溱</span>
+                    <span class="role-chip" onclick="setRole(this, 'note')">琳</span>
+                    <span class="role-chip" onclick="setRole(this, 'note')">瑄</span>
                 </div>
                 <textarea id="note-input" placeholder="輸入備註內容..." style="width:100%; padding:10px; border-radius:12px; border:1px solid #E6D9BC; min-height:80px;"></textarea>
                 <button class="btn" style="background:#8B7355; margin-top:10px;" onclick="addPost('note')">張貼便利貼</button>
@@ -224,7 +236,7 @@
             document.getElementById(type + '-list').innerHTML = posts.map(p => `
                 <div class="post-it">
                     <span style="font-size:0.7rem; color:#888;">${p.time}<br>發布者：${p.role}</span>
-                    <div style="margin:8px 0; font-size:0.95rem; word-break:break-all;">${p.text}</div>
+                    <div style="margin:8px 0; font-size:0.95rem; word-break:break-all; white-space: pre-wrap;">${p.text}</div>
                     <button onclick="deletePost('${type}', '${p.docId}')" style="font-size:0.7rem; cursor:pointer; background:none; border:1px solid #ffcccc; color:red; border-radius:5px;">刪除</button>
                 </div>
             `).join('');
@@ -262,9 +274,9 @@
 
     window.addPost = async (type) => {
         const role = (type === 'notice') ? curNoticeRole : curNoteRole;
-        if(!role) { alert("請選擇角色"); return; }
+        if(!role) { alert("請先選擇您的稱謂"); return; }
         const input = document.getElementById(type + '-input');
-        if(!input.value) return;
+        if(!input.value.trim()) return;
         const newId = Date.now();
         await setDoc(doc(collection(db, type + "s"), newId.toString()), {
             id: newId, role, text: input.value, time: new Date().toLocaleString()
@@ -273,7 +285,7 @@
     };
 
     window.deletePost = async (type, docId) => {
-        if(confirm("確定刪除嗎？")) await deleteDoc(doc(db, type + "s", docId));
+        if(confirm("確定刪除這條訊息嗎？")) await deleteDoc(doc(db, type + "s", docId));
     };
 
     window.unlock = (id) => document.getElementById(id).classList.remove('is-locked');
