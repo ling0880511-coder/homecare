@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 居家照護雲端系統 V16</title>
+<title>2026 居家照護雲端系統 V16.3 修正版</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
@@ -21,7 +21,8 @@
     .app-container { width: 100%; max-width: 850px; display: none; }
     
     .card { background: var(--card-bg); border-radius: 20px; margin-bottom: 25px; border: 2px solid var(--border-dark); padding: 20px; position: relative; }
-    .section-title, .chart-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; text-align: center; display: block; color: #3A3A3C; }
+    .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; text-align: center; display: block; color: #3A3A3C; }
+    .chart-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; text-align: center; display: block; color: #3A3A3C; }
     
     .edit-btn { position: absolute; top: 20px; right: 20px; border: none; background: none; color: #007AFF; font-weight: bold; cursor: pointer; font-size: 0.9rem; z-index: 10; }
     
@@ -30,21 +31,24 @@
     .v-tab.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     
     .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
-    .field-indep input { border: 2px solid var(--morandi-blue) !important; background: #F0F4F7; }
-    .field-common input { border: 2px solid var(--morandi-green) !important; background: #F2F6F5; }
     .input-item input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #D1D1D6; font-size: 1rem; outline: none; }
     .input-item label { font-size: 0.8rem; color: #4A4A4A; display: block; margin-bottom: 4px; font-weight: 600; }
     
     .rehab-group { background: #F9F9FB; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #E5E5EA; }
     .rehab-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #EFEEF2; }
     
+    /* 復健編輯視覺修正：排除按鈕 */
+    .rehab-content.is-editing { opacity: 0.6; background-color: #E5E5EA; transition: 0.3s; border-radius: 15px; padding: 5px; }
+    .is-locked { pointer-events: none; }
+    .vitals-locked { pointer-events: none; opacity: 0.6; }
+
     .role-chip { padding: 8px 16px; border-radius: 20px; background: #E3E3E8; font-size: 0.85rem; cursor: pointer; margin: 4px; display: inline-block; border: none; }
     .role-chip.active-red { background: var(--morandi-red); color: white; }
     .role-chip.active-yellow { background: #8B7355; color: white; }
     
     .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; min-height: 120px; }
     .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; border: 1px solid #E6D9BC; line-height: 1.5; position: relative; }
-    .post-it.pinned { border: 2px solid #FF9500; background: #FFF4D1; }
+    .post-it.pinned { border: 2.5px solid #FF9500; background: #FFF4D1; }
 
     .toggle { position: relative; width: 46px; height: 26px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
@@ -53,13 +57,7 @@
     input:checked + .slider { background: #34C759; }
     input:checked + .slider:before { transform: translateX(20px); }
     
-    .btn-save { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-    
-    /* 修正：鎖定時不反白，僅禁止點擊 */
-    .is-locked { pointer-events: none; } 
-    /* 生理數值區塊維持反白提醒 */
-    .vitals-locked { pointer-events: none; opacity: 0.6; }
-    
+    .btn-save { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
     .hidden { display: none !important; }
 </style>
 </head>
@@ -67,18 +65,18 @@
 
 <div id="password-screen">
     <h2 style="margin-bottom:20px;">🛡️ 居家照護系統登入🛡️</h2>
-    <input type="password" id="pwd-input" placeholder="請輸入密碼" style="padding:15px; border-radius:12px; border:2px solid #ccc; width:220px; text-align:center; font-size:1.2rem;">
+    <input type="password" id="pwd-input" placeholder="請輸入密碼" style="padding:15px; border-radius:12px; border:2px solid #ccc; width:220px; text-align:center;">
     <button onclick="checkPwd()" style="margin-top:20px; padding:12px 40px; border-radius:12px; background:#1C1C1E; color:white; border:none; font-weight:bold;">驗證</button>
 </div>
 
 <div class="app-container" id="main-app">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding: 0 10px;">
-        <button onclick="changeDate(-1)" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">◀</button>
+        <button onclick="changeDate(-1)" style="border:none; background:none; font-size:1.5rem;">◀</button>
         <div style="text-align:center">
-            <input type="date" id="date-picker" style="border:none; background:none; font-size:1.2rem; font-weight:800; color:#1C1C1E;">
-            <div id="weekday-text" style="font-size:0.9rem; color:#8E8E93; margin-top:4px;"></div>
+            <input type="date" id="date-picker" style="border:none; background:none; font-size:1.2rem; font-weight:800;">
+            <div id="weekday-text" style="font-size:0.9rem; color:#8E8E93;"></div>
         </div>
-        <button onclick="changeDate(1)" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">▶</button>
+        <button onclick="changeDate(1)" style="border:none; background:none; font-size:1.5rem;">▶</button>
     </div>
 
     <div class="card" style="border-color: var(--morandi-red);">
@@ -103,33 +101,28 @@
             <div class="v-tab" onclick="switchVitalTab('evening')">晚上紀錄</div>
         </div>
         <div id="vitals-box" class="vitals-locked">
-            <div class="input-row field-indep">
+            <div class="input-row">
                 <div class="input-item"><label>收縮壓</label><input type="number" id="v-sys"></div>
                 <div class="input-item"><label>舒張壓</label><input type="number" id="v-dia"></div>
                 <div class="input-item"><label>脈搏</label><input type="number" id="v-hr"></div>
                 <div class="input-item"><label>血糖</label><input type="number" id="v-sugar"></div>
             </div>
-            <div class="input-row field-common">
+            <div class="input-row">
                 <div class="input-item"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
                 <div class="input-item"><label>喝水量</label><input type="number" id="v-water"></div>
                 <div class="input-item"><label>大號</label><input type="number" id="v-stool"></div>
-                <div class="input-item"><label>小號(尿布)</label><input type="number" id="v-urine"></div>
+                <div class="input-item"><label>小號</label><input type="number" id="v-urine"></div>
             </div>
         </div>
         <button class="btn-save" style="background:var(--morandi-blue); color:white;" onclick="saveVitals()">✔ 儲存並同步雲端</button>
-        <div style="margin-top:35px;"><canvas id="dayChart" style="max-height:220px;"></canvas></div>
-        <div style="margin-top:45px; border-top:1px dashed #ccc; padding-top:30px;"><canvas id="monthChart" style="max-height:220px;"></canvas></div>
-    </div>
-
-    <div class="card" style="border-color: var(--morandi-purple);">
-        <div class="section-title">💊 藥物紀錄 💊</div>
-        <button class="edit-btn" onclick="unlock('med-section')">✎ 編輯</button>
-        <div id="med-display" style="min-height:60px; background:#F2F2F7; border-radius:15px; padding:15px; margin-bottom:15px; border:1px solid #E5E5EA;"></div>
-        <div id="med-section" class="hidden">
-            <div id="med-btns" style="text-align:center;">
-                <span class="role-chip" onclick="addMed('血壓藥')">血壓藥</span><span class="role-chip" onclick="addMed('身心科藥')">身心科藥</span><span class="role-chip" onclick="addMed('軟便劑')">軟便劑</span><span class="role-chip" onclick="addMed('抗生素')">抗生素</span><span class="role-chip" onclick="addMed('泌尿科外用藥')">泌尿科外用藥</span>
-            </div>
-            <button class="btn-save" style="background:var(--morandi-purple); color:white;" onclick="saveMeds()">✔ 儲存當前藥物</button>
+        
+        <div style="margin-top:30px;">
+            <div class="chart-title">📊 當日早晚數值對比 📊</div>
+            <canvas id="dayChart" style="max-height:180px;"></canvas>
+        </div>
+        <div style="margin-top:40px; border-top:1px dashed #ccc; padding-top:20px;">
+            <div class="chart-title">📊 當月數值對比 📊</div>
+            <canvas id="monthChart" style="max-height:180px;"></canvas>
         </div>
     </div>
 
@@ -137,23 +130,25 @@
         <div class="section-title">💪 復健紀錄 💪</div>
         <button class="edit-btn" onclick="unlock('rehab-area')">✎ 編輯</button>
         <div id="rehab-area" class="is-locked">
-            <div class="rehab-group">
-                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌅 早上</div>
-                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-m-1"><span class="slider"></span></label></div>
-                <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m-2"><span class="slider"></span></label></div>
-                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-m-3"><span class="slider"></span></label></div>
-            </div>
-            <div class="rehab-group">
-                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">☀️ 中午</div>
-                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-n-1"><span class="slider"></span></label></div>
-                <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-n-2"><span class="slider"></span></label></div>
-                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-n-3"><span class="slider"></span></label></div>
-            </div>
-            <div class="rehab-group">
-                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌙 晚上</div>
-                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-e-1"><span class="slider"></span></label></div>
-                <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e-2"><span class="slider"></span></label></div>
-                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-e-3"><span class="slider"></span></label></div>
+            <div id="rehab-inner-content" class="rehab-content">
+                <div class="rehab-group">
+                    <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌅 早上</div>
+                    <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-m-1"><span class="slider"></span></label></div>
+                    <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m-2"><span class="slider"></span></label></div>
+                    <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-m-3"><span class="slider"></span></label></div>
+                </div>
+                <div class="rehab-group">
+                    <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">☀️ 中午</div>
+                    <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-n-1"><span class="slider"></span></label></div>
+                    <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-n-2"><span class="slider"></span></label></div>
+                    <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-n-3"><span class="slider"></span></label></div>
+                </div>
+                <div class="rehab-group">
+                    <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌙 晚上</div>
+                    <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-e-1"><span class="slider"></span></label></div>
+                    <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e-2"><span class="slider"></span></label></div>
+                    <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-e-3"><span class="slider"></span></label></div>
+                </div>
             </div>
             <button class="btn-save" style="background:var(--morandi-green); color:white;" onclick="saveRehab()">✔ 儲存運動進度</button>
         </div>
@@ -166,7 +161,7 @@
             <div id="note-roles" style="text-align:center;">
                 <span class="role-chip" onclick="setRole(this, 'note')">媽媽</span><span class="role-chip" onclick="setRole(this, 'note')">爸爸</span><span class="role-chip" onclick="setRole(this, 'note')">叔叔</span><span class="role-chip" onclick="setRole(this, 'note')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'note')">溱</span><span class="role-chip" onclick="setRole(this, 'note')">琳</span><span class="role-chip" onclick="setRole(this, 'note')">瑄</span>
             </div>
-            <textarea id="note-input" placeholder="筆記內容..." style="width:100%; border-radius:12px; padding:12px; border:1px solid #ddd; margin-top:10px; min-height:80px;"></textarea>
+            <textarea id="note-input" placeholder="隨手筆記..." style="width:100%; border-radius:12px; padding:12px; border:1px solid #ddd; margin-top:10px; min-height:80px;"></textarea>
             <button class="btn-save" style="background:#8B7355; color:white;" onclick="addPost('note')">張貼便利貼</button>
         </div>
     </div>
@@ -174,7 +169,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit, deleteDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC-9FQXNj-4wxUZdTe1utc52tkOut9VcYQ",
@@ -188,18 +183,14 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let currentVitalMode = 'morning'; 
-    let currentMeds = [];
-    let curNoticeRole = "", curNoteRole = "";
-    let dayChart = null, monthChart = null;
-    let isEditingMeds = false;
+    let currentVitalMode = 'morning', curNoticeRole = "", curNoteRole = "", dayChart = null, monthChart = null;
 
     window.checkPwd = () => {
         if(document.getElementById('pwd-input').value === "8888") {
             document.getElementById('password-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             init();
-        } else { alert("密碼錯誤"); }
+        } else alert("密碼錯誤");
     };
 
     function init() {
@@ -211,11 +202,49 @@
         updateMonthChart();
     }
 
-    function linkify(text) {
-        if(!text) return "";
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color:#007AFF;text-decoration:underline;word-break:break-all;">${url}</a>`);
+    function syncBoard(type) {
+        onSnapshot(collection(db, type + "s"), (snap) => {
+            let posts = [];
+            snap.forEach(s => posts.push({ docId: s.id, ...s.data() }));
+            posts.sort((a, b) => {
+                const aP = a.pinned ? 1 : 0; const bP = b.pinned ? 1 : 0;
+                if (bP !== aP) return bP - aP;
+                return (b.id || 0) - (a.id || 0);
+            });
+            document.getElementById(type + '-list').innerHTML = posts.map(p => `
+                <div class="post-it ${p.pinned ? 'pinned' : ''}">
+                    ${p.pinned ? '<span style="position:absolute; top:5px; right:10px; font-size:0.7rem; color:#FF9500; font-weight:bold;">📌置頂</span>' : ''}
+                    <b>${p.role}</b> <small style="color:#888;">${p.time}</small><br>
+                    <div style="margin:8px 0;">${p.text}</div>
+                    <div style="margin-top:10px; display:flex; gap:15px;">
+                        <span onclick="togglePin('${type}','${p.docId}', ${p.pinned || false})" style="color:#FF9500; font-size:0.75rem; cursor:pointer; font-weight:bold;">${p.pinned ? '取消' : '📌置頂'}</span>
+                        <span onclick="deletePost('${type}','${p.docId}')" style="color:red; font-size:0.75rem; cursor:pointer; font-weight:bold;">刪除</span>
+                    </div>
+                </div>`).join('') || '<div style="color:#888; padding:20px;">尚無紀錄</div>';
+        });
     }
+
+    window.togglePin = async (type, docId, cur) => await updateDoc(doc(db, type + "s", docId), { pinned: !cur });
+    window.deletePost = async (type, docId) => { if(confirm("確定刪除？")) await deleteDoc(doc(db, type + "s", docId)); };
+
+    window.addPost = async (type) => {
+        const role = (type === 'notice') ? curNoticeRole : curNoteRole;
+        if(!role) return alert("請先選擇稱謂");
+        const input = document.getElementById(type + '-input');
+        if(!input.value.trim()) return;
+        const newId = Date.now();
+        await setDoc(doc(db, type + "s", newId.toString()), { role, text: input.value, time: new Date().toLocaleString(), id: newId, pinned: false });
+        input.value = "";
+    };
+
+    window.unlock = (id) => {
+        if(id === 'rehab-area') { 
+            document.getElementById(id).classList.remove('is-locked'); 
+            document.getElementById('rehab-inner-content').classList.add('is-editing'); 
+        } else {
+            document.getElementById(id).classList.remove('vitals-locked');
+        }
+    };
 
     async function syncData(date) {
         onSnapshot(doc(db, "daily_records", date), (snap) => {
@@ -229,7 +258,6 @@
             document.getElementById('v-water').value = d.water || "";
             document.getElementById('v-stool').value = d.stool || "";
             document.getElementById('v-urine').value = d.urine || "";
-            currentMeds = d.meds || []; renderMeds();
             ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) document.getElementById(`r-${p}-${i}`).checked = d[`r${p}${i}`] || false; });
             updateDayChart(d);
             const dt = new Date(date);
@@ -238,72 +266,31 @@
         });
     }
 
-    window.unlock = (id) => {
-        if(id === 'med-section') { isEditingMeds = true; document.getElementById(id).classList.remove('hidden'); renderMeds(); }
-        else if(id === 'vitals-box') { document.getElementById(id).classList.remove('vitals-locked'); }
-        else { document.getElementById(id).classList.remove('is-locked'); }
-    };
-
-    window.addMed = (name) => { currentMeds.push({id: Date.now(), name}); renderMeds(); };
-    window.removeMed = (id) => { currentMeds = currentMeds.filter(m => m.id !== id); renderMeds(); };
-    function renderMeds() {
-        document.getElementById('med-display').innerHTML = currentMeds.map(m => `
-            <span style="background:#fff; border:1px solid #ddd; padding:5px 10px; border-radius:8px; margin:4px; display:inline-block;">
-                ${m.name} ${isEditingMeds ? `<b onclick="removeMed(${m.id})" style="color:red; cursor:pointer; margin-left:5px;">×</b>` : ''}
-            </span>`).join('');
-    }
-    window.saveMeds = async () => {
-        await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), { meds: currentMeds }, { merge: true });
-        isEditingMeds = false; document.getElementById('med-section').classList.add('hidden'); renderMeds();
-    };
-
     window.saveVitals = async () => {
         const updateObj = { [currentVitalMode]: { sys: document.getElementById('v-sys').value, dia: document.getElementById('v-dia').value, hr: document.getElementById('v-hr').value, sugar: document.getElementById('v-sugar').value }, temp: document.getElementById('v-temp').value, water: document.getElementById('v-water').value, stool: document.getElementById('v-stool').value, urine: document.getElementById('v-urine').value };
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), updateObj, { merge: true });
-        document.getElementById('vitals-box').classList.add('vitals-locked'); updateMonthChart();
+        document.getElementById('vitals-box').classList.add('vitals-locked');
+        updateMonthChart();
     };
 
     window.saveRehab = async () => {
         const obj = {}; ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) obj[`r${p}${i}`] = document.getElementById(`r-${p}-${i}`).checked; });
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), obj, { merge: true });
-        document.getElementById('rehab-area').classList.add('is-locked');
+        document.getElementById('rehab-area').classList.add('is-locked'); 
+        document.getElementById('rehab-inner-content').classList.remove('is-editing');
     };
 
-    function syncBoard(type) {
-        onSnapshot(collection(db, type + "s"), (snap) => {
-            let allPosts = [];
-            snap.forEach(docSnap => allPosts.push({ id: docSnap.id, ...docSnap.data() }));
-            allPosts.sort((a, b) => {
-                const aPinned = a.pinned || false;
-                const bPinned = b.pinned || false;
-                if (aPinned !== bPinned) return bPinned - aPinned;
-                return (b.id || 0) - (a.id || 0);
-            });
-            const html = allPosts.map(p => `
-                <div class="post-it ${p.pinned ? 'pinned' : ''}">
-                    ${p.pinned ? '<span style="position:absolute; top:5px; right:10px; font-size:0.7rem; font-weight:bold;">📌 置頂</span>' : ''}
-                    <b>${p.role || "匿名"}</b> <small style="color:#888;">${p.time || ""}</small><br>
-                    <div style="margin:8px 0;">${linkify(p.text)}</div>
-                    <div style="margin-top:10px; display:flex; gap:12px;">
-                        <span onclick="togglePin('${type}','${p.id}', ${p.pinned || false})" style="color:#FF9500; font-size:0.75rem; cursor:pointer;">${p.pinned ? '取消置頂' : '📌 置頂'}</span>
-                        <span onclick="deletePost('${type}','${p.id}')" style="color:red; font-size:0.75rem; cursor:pointer;">刪除</span>
-                    </div>
-                </div>`).join('');
-            document.getElementById(type + '-list').innerHTML = html || '<div style="color:#888; padding:20px;">尚無訊息</div>';
-        });
-    }
-
-    window.togglePin = async (type, id, curStatus) => {
-        await updateDoc(doc(db, type + "s", id), { pinned: !curStatus });
+    window.setRole = (el, type) => {
+        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red','active-yellow'));
+        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
+        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
     };
 
-    window.addPost = async (type) => {
-        const role = (type === 'notice') ? curNoticeRole : curNoteRole;
-        if(!role) return alert("請先點選稱謂");
-        const input = document.getElementById(type + '-input');
-        if(!input.value.trim()) return;
-        await setDoc(doc(collection(db, type + "s"), Date.now().toString()), { role, text: input.value, time: new Date().toLocaleString(), id: Date.now(), pinned: false });
-        input.value = "";
+    window.changeDate = (n) => {
+        let d = new Date(document.getElementById('date-picker').value);
+        d.setDate(d.getDate() + n);
+        document.getElementById('date-picker').value = d.toLocaleDateString('en-CA');
+        syncData(document.getElementById('date-picker').value);
     };
 
     window.switchVitalTab = (mode) => {
@@ -316,35 +303,22 @@
         const ctx = document.getElementById('dayChart').getContext('2d');
         if(dayChart) dayChart.destroy();
         const m = d.morning || {}, e = d.evening || {};
-        dayChart = new Chart(ctx, { type: 'bar', data: { labels: ['收縮壓', '舒張壓', '脈搏', '血糖'], datasets: [{ label: '早上', data: [m.sys, m.dia, m.hr, m.sugar], backgroundColor: '#8DA1B9' }, { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar], backgroundColor: '#5D7A99' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+        dayChart = new Chart(ctx, { type: 'bar', data: { labels: ['收縮壓', '舒張壓', '脈搏', '血糖'], datasets: [{ label: '早上', data: [m.sys, m.dia, m.hr, m.sugar], backgroundColor: '#8DA1B9' }, { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar], backgroundColor: '#5D7A99' }] }, options: { responsive: true, maintainAspectRatio: false } });
     }
 
     async function updateMonthChart() {
         const snap = await getDocs(collection(db, "daily_records"));
-        const labels = [], sysData = [], hrData = [], sugarData = []; const sorted = [];
+        const labels = [], sysData = [], hrData = [], sugarData = [], sorted = [];
         snap.forEach(doc => sorted.push({date: doc.id, ...doc.data()}));
         sorted.sort((a,b) => a.date.localeCompare(b.date)).slice(-7).forEach(d => {
             labels.push(d.date.slice(5));
-            const avg = (mode) => { const ms = d.morning?.[mode]||0, es = d.evening?.[mode]||0; return ms && es ? (Number(ms)+Number(es))/2 : (ms || es || 0); };
+            const avg = (f) => { const ms = d.morning?.[f]||0, es = d.evening?.[f]||0; return ms && es ? (Number(ms)+Number(es))/2 : (ms || es || 0); };
             sysData.push(avg('sys')); hrData.push(avg('hr')); sugarData.push(avg('sugar'));
         });
         const ctx = document.getElementById('monthChart').getContext('2d');
         if(monthChart) monthChart.destroy();
-        monthChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: '收縮', data: sysData, borderColor: '#B07D7D', tension: 0.3 }, { label: '脈搏', data: hrData, borderColor: '#8DA1B9', tension: 0.3 }, { label: '血糖', data: sugarData, borderColor: '#8BA8A1', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } } });
+        monthChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: '收縮', data: sysData, borderColor: '#B07D7D' }, { label: '脈搏', data: hrData, borderColor: '#8DA1B9' }, { label: '血糖', data: sugarData, borderColor: '#8BA8A1' }] }, options: { responsive: true, maintainAspectRatio: false } });
     }
-
-    window.setRole = (el, type) => {
-        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red','active-yellow'));
-        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
-        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
-    };
-    window.deletePost = async (type, id) => { if(confirm("確定刪除此紀錄？")) await deleteDoc(doc(db, type+"s", id)); };
-    window.changeDate = (n) => {
-        let d = new Date(document.getElementById('date-picker').value);
-        d.setDate(d.getDate() + n);
-        document.getElementById('date-picker').value = d.toLocaleDateString('en-CA');
-        syncData(document.getElementById('date-picker').value);
-    };
 </script>
 </body>
 </html>
