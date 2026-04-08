@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 居家照護雲端系統 V15</title>
+<title>2026 居家照護雲端系統 V16</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
@@ -23,7 +23,7 @@
     .card { background: var(--card-bg); border-radius: 20px; margin-bottom: 25px; border: 2px solid var(--border-dark); padding: 20px; position: relative; }
     .section-title, .chart-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; text-align: center; display: block; color: #3A3A3C; }
     
-    .edit-btn { position: absolute; top: 20px; right: 20px; border: none; background: none; color: #007AFF; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+    .edit-btn { position: absolute; top: 20px; right: 20px; border: none; background: none; color: #007AFF; font-weight: bold; cursor: pointer; font-size: 0.9rem; z-index: 10; }
     
     .vital-tabs { display: flex; background: #E3E3E8; border-radius: 12px; padding: 3px; margin-bottom: 15px; }
     .v-tab { flex: 1; text-align: center; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
@@ -43,8 +43,8 @@
     .role-chip.active-yellow { background: #8B7355; color: white; }
     
     .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; min-height: 120px; }
-    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; border: 1px solid #E6D9BC; line-height: 1.5; position: relative; transition: 0.3s; }
-    .post-it.pinned { border: 2px solid #FF9500; background: #FFF4D1; box-shadow: 0 4px 8px rgba(255,149,0,0.2); }
+    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; border: 1px solid #E6D9BC; line-height: 1.5; position: relative; }
+    .post-it.pinned { border: 2px solid #FF9500; background: #FFF4D1; }
 
     .toggle { position: relative; width: 46px; height: 26px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
@@ -54,7 +54,12 @@
     input:checked + .slider:before { transform: translateX(20px); }
     
     .btn-save { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-    .is-locked { pointer-events: none; opacity: 0.6; }
+    
+    /* 修正：鎖定時不反白，僅禁止點擊 */
+    .is-locked { pointer-events: none; } 
+    /* 生理數值區塊維持反白提醒 */
+    .vitals-locked { pointer-events: none; opacity: 0.6; }
+    
     .hidden { display: none !important; }
 </style>
 </head>
@@ -84,7 +89,7 @@
                 <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span><span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span><span class="role-chip" onclick="setRole(this, 'notice')">叔叔</span><span class="role-chip" onclick="setRole(this, 'notice')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'notice')">溱</span><span class="role-chip" onclick="setRole(this, 'notice')">琳</span><span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
             </div>
             <div style="display:flex; gap:10px; margin-top:12px;">
-                <input type="text" id="notice-input" placeholder="訊息或影片連結..." style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
+                <input type="text" id="notice-input" placeholder="訊息或連結..." style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
                 <button onclick="addPost('notice')" style="background:var(--morandi-red); color:white; border:none; border-radius:12px; padding:0 20px; font-weight:bold;">發送</button>
             </div>
         </div>
@@ -92,12 +97,12 @@
 
     <div class="card" style="border-color: var(--morandi-blue);">
         <div class="section-title">📊 生理數值 📊</div>
-        <button class="edit-btn" onclick="unlock('vitals')">✎ 編輯</button>
+        <button class="edit-btn" onclick="unlock('vitals-box')">✎ 編輯</button>
         <div class="vital-tabs">
             <div class="v-tab active" onclick="switchVitalTab('morning')">早上紀錄</div>
             <div class="v-tab" onclick="switchVitalTab('evening')">晚上紀錄</div>
         </div>
-        <div id="vitals" class="is-locked">
+        <div id="vitals-box" class="vitals-locked">
             <div class="input-row field-indep">
                 <div class="input-item"><label>收縮壓</label><input type="number" id="v-sys"></div>
                 <div class="input-item"><label>舒張壓</label><input type="number" id="v-dia"></div>
@@ -112,8 +117,8 @@
             </div>
         </div>
         <button class="btn-save" style="background:var(--morandi-blue); color:white;" onclick="saveVitals()">✔ 儲存並同步雲端</button>
-        <div style="margin-top:35px;"><div class="chart-title">📊 每日數值對比 📊</div><canvas id="dayChart" style="max-height:220px;"></canvas></div>
-        <div style="margin-top:45px; border-top:1px dashed #ccc; padding-top:30px;"><div class="chart-title">📈 本月數值對比 📈</div><canvas id="monthChart" style="max-height:220px;"></canvas></div>
+        <div style="margin-top:35px;"><canvas id="dayChart" style="max-height:220px;"></canvas></div>
+        <div style="margin-top:45px; border-top:1px dashed #ccc; padding-top:30px;"><canvas id="monthChart" style="max-height:220px;"></canvas></div>
     </div>
 
     <div class="card" style="border-color: var(--morandi-purple);">
@@ -235,6 +240,7 @@
 
     window.unlock = (id) => {
         if(id === 'med-section') { isEditingMeds = true; document.getElementById(id).classList.remove('hidden'); renderMeds(); }
+        else if(id === 'vitals-box') { document.getElementById(id).classList.remove('vitals-locked'); }
         else { document.getElementById(id).classList.remove('is-locked'); }
     };
 
@@ -254,38 +260,32 @@
     window.saveVitals = async () => {
         const updateObj = { [currentVitalMode]: { sys: document.getElementById('v-sys').value, dia: document.getElementById('v-dia').value, hr: document.getElementById('v-hr').value, sugar: document.getElementById('v-sugar').value }, temp: document.getElementById('v-temp').value, water: document.getElementById('v-water').value, stool: document.getElementById('v-stool').value, urine: document.getElementById('v-urine').value };
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), updateObj, { merge: true });
-        document.getElementById('vitals').classList.add('is-locked'); updateMonthChart();
+        document.getElementById('vitals-box').classList.add('vitals-locked'); updateMonthChart();
     };
+
     window.saveRehab = async () => {
         const obj = {}; ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) obj[`r${p}${i}`] = document.getElementById(`r-${p}-${i}`).checked; });
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), obj, { merge: true });
         document.getElementById('rehab-area').classList.add('is-locked');
     };
 
-    // 公佈欄同步：改為「抓取所有資料」後在前端排序，解決資料消失問題
     function syncBoard(type) {
         onSnapshot(collection(db, type + "s"), (snap) => {
             let allPosts = [];
-            snap.forEach(docSnap => {
-                const data = docSnap.data();
-                allPosts.push({ id: docSnap.id, ...data });
-            });
-
-            // 前端排序邏輯：1. 置頂優先 2. 時間倒序
+            snap.forEach(docSnap => allPosts.push({ id: docSnap.id, ...docSnap.data() }));
             allPosts.sort((a, b) => {
                 const aPinned = a.pinned || false;
                 const bPinned = b.pinned || false;
                 if (aPinned !== bPinned) return bPinned - aPinned;
-                return (b.id || 0) - (a.id || 0); // 這裡用 id 作為時間排序的依據
+                return (b.id || 0) - (a.id || 0);
             });
-
-            const html = allPosts.slice(0, 15).map(p => `
+            const html = allPosts.map(p => `
                 <div class="post-it ${p.pinned ? 'pinned' : ''}">
                     ${p.pinned ? '<span style="position:absolute; top:5px; right:10px; font-size:0.7rem; font-weight:bold;">📌 置頂</span>' : ''}
                     <b>${p.role || "匿名"}</b> <small style="color:#888;">${p.time || ""}</small><br>
                     <div style="margin:8px 0;">${linkify(p.text)}</div>
                     <div style="margin-top:10px; display:flex; gap:12px;">
-                        <span onclick="togglePin('${type}','${p.id}', ${p.pinned || false})" style="color:#FF9500; font-size:0.75rem; cursor:pointer; font-weight:bold;">${p.pinned ? '取消置頂' : '📌 置頂'}</span>
+                        <span onclick="togglePin('${type}','${p.id}', ${p.pinned || false})" style="color:#FF9500; font-size:0.75rem; cursor:pointer;">${p.pinned ? '取消置頂' : '📌 置頂'}</span>
                         <span onclick="deletePost('${type}','${p.id}')" style="color:red; font-size:0.75rem; cursor:pointer;">刪除</span>
                     </div>
                 </div>`).join('');
@@ -299,17 +299,10 @@
 
     window.addPost = async (type) => {
         const role = (type === 'notice') ? curNoticeRole : curNoteRole;
-        if(!role) return alert("請先選擇您的稱謂");
+        if(!role) return alert("請先點選稱謂");
         const input = document.getElementById(type + '-input');
         if(!input.value.trim()) return;
-        // 存檔時統一加上 pinned 預設值，確保資料結構一致
-        await setDoc(doc(collection(db, type + "s"), Date.now().toString()), { 
-            role, 
-            text: input.value, 
-            time: new Date().toLocaleString(), 
-            id: Date.now(), 
-            pinned: false 
-        });
+        await setDoc(doc(collection(db, type + "s"), Date.now().toString()), { role, text: input.value, time: new Date().toLocaleString(), id: Date.now(), pinned: false });
         input.value = "";
     };
 
@@ -318,12 +311,14 @@
         event.target.classList.add('active'); currentVitalMode = mode;
         syncData(document.getElementById('date-picker').value);
     };
+
     function updateDayChart(d) {
         const ctx = document.getElementById('dayChart').getContext('2d');
         if(dayChart) dayChart.destroy();
         const m = d.morning || {}, e = d.evening || {};
         dayChart = new Chart(ctx, { type: 'bar', data: { labels: ['收縮壓', '舒張壓', '脈搏', '血糖'], datasets: [{ label: '早上', data: [m.sys, m.dia, m.hr, m.sugar], backgroundColor: '#8DA1B9' }, { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar], backgroundColor: '#5D7A99' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
     }
+
     async function updateMonthChart() {
         const snap = await getDocs(collection(db, "daily_records"));
         const labels = [], sysData = [], hrData = [], sugarData = []; const sorted = [];
@@ -337,6 +332,7 @@
         if(monthChart) monthChart.destroy();
         monthChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: '收縮', data: sysData, borderColor: '#B07D7D', tension: 0.3 }, { label: '脈搏', data: hrData, borderColor: '#8DA1B9', tension: 0.3 }, { label: '血糖', data: sugarData, borderColor: '#8BA8A1', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } } });
     }
+
     window.setRole = (el, type) => {
         el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red','active-yellow'));
         el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
