@@ -3,161 +3,166 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>奶奶居家照護 </title>
+<title>2026 居家照護雲端系統 V9</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
-        --morandi-red: #B07D7D;    --morandi-red-light: #F9F1F1;
-        --morandi-blue: #8DA1B9;   --morandi-blue-dark: #5D7A99; --morandi-blue-deep: #3E5671; --morandi-blue-light: #F0F4F7;
-        --morandi-green: #8BA8A1;  --morandi-green-dark: #6B847D; --morandi-green-deep: #4A5F59; --morandi-green-light: #F2F6F5;
-        --morandi-purple: #9692AF; --morandi-purple-dark: #706B8F; --morandi-purple-deep: #54506B; --morandi-purple-light: #F4F3F7;
-        --morandi-yellow: #CDBE9A; --morandi-yellow-light: #FAF8F2;
-        --morandi-bg: #EAECEB;
-        --text-dark: #4A4A4A;
+        --ios-bg: #F2F2F7;
+        --card-bg: #FFFFFF;
+        --morandi-red: #B07D7D;    --morandi-blue: #8DA1B9;
+        --morandi-green: #8BA8A1;  --morandi-purple: #9692AF;
+        --morandi-yellow: #CDBE9A; --text-main: #1C1C1E;
     }
-    * { box-sizing: border-box; font-family: -apple-system, "Noto Sans TC", sans-serif; }
-    body { background-color: var(--morandi-bg); margin: 0; padding: 20px; color: var(--text-dark); display: flex; justify-content: center; }
-    .app-container { width: 100%; max-width: 850px; }
-    .header-nav { background: #DDE2E0; padding: 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    input[type="date"] { padding: 8px; border-radius: 12px; border: none; background: rgba(255,255,255,0.5); font-weight: bold; color: #5E716B; }
-    .card { background: white; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); overflow: hidden; }
-    .card-body { padding: 20px 25px; }
-    .section-title { text-align: center; font-size: 1.2rem; font-weight: bold; margin: 15px 0; display: block; }
-    .border-red { border-left: 10px solid var(--morandi-red); background-color: var(--morandi-red-light); }
-    .border-blue { border-left: 10px solid var(--morandi-blue); background-color: var(--morandi-blue-light); }
-    .border-green { border-left: 10px solid var(--morandi-green); background-color: var(--morandi-green-light); }
-    .border-purple { border-left: 10px solid var(--morandi-purple); background-color: var(--morandi-purple-light); }
-    .border-yellow { border-left: 10px solid var(--morandi-yellow); background-color: var(--morandi-yellow-light); }
-    .btn { padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; font-size: 0.95rem; transition: 0.3s; color: white; width: 100%; margin: 5px 0; }
-    .btn-rose { background-color: var(--morandi-red); }
-    .btn-save-blue { background-color: var(--morandi-blue-deep); }
-    .btn-save-purple { background-color: var(--morandi-purple-deep); }
-    .btn-save-green { background-color: var(--morandi-green-deep); }
-    .role-chip { padding: 6px 14px; border-radius: 15px; background: white; border: 1px solid #ddd; font-size: 0.85rem; cursor: pointer; margin: 3px; display: inline-block; }
-    .role-chip.active-red { background: var(--morandi-red); color: white; border-color: var(--morandi-red); }
-    .role-chip.active-yellow { background: #8B7355; color: white; border-color: #8B7355; }
-    .scroll-container { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; }
-    .post-it { flex: 0 0 260px; padding: 15px; border-radius: 15px; background: white; box-shadow: 2px 4px 8px rgba(0,0,0,0.05); position: relative; border: 1px solid #eee; }
-    .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-    .input-group label { font-weight: bold; display: block; margin-bottom: 5px; color: var(--morandi-blue-deep); }
-    .input-group input { width: 100%; padding: 12px; border-radius: 15px; border: 1px solid #D1D9E0; }
-    .is-locked { pointer-events: none; opacity: 0.7; background-color: #f8f8f8 !important; }
-    .med-tab-group { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
-    .med-tab { padding: 8px 20px; border-radius: 20px; border: 1px solid var(--morandi-purple); cursor: pointer; color: var(--morandi-purple); font-weight: bold; }
-    .med-tab.active { background: var(--morandi-purple); color: white; }
-    .med-display-box { background: white; border-radius: 15px; padding: 15px; min-height: 60px; border: 1px solid #ddd; margin-bottom: 15px; }
-    .med-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
-    .rehab-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
-    .toggle { position: relative; width: 50px; height: 28px; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { background-color: var(--ios-bg); margin: 0; padding: 20px; color: var(--text-main); display: flex; justify-content: center; }
+    #password-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--ios-bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .app-container { width: 100%; max-width: 850px; display: none; } /* 初始隱藏，密碼正確才顯示 */
+    
+    /* iOS 卡片風格 */
+    .card { background: var(--card-bg); border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; }
+    .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #3A3A3C; }
+    
+    /* 生理數值 - 早晚分開 */
+    .vital-tabs { display: flex; background: #E3E3E8; border-radius: 10px; padding: 2px; margin-bottom: 15px; }
+    .v-tab { flex: 1; text-align: center; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+    .v-tab.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    
+    .input-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .input-item label { font-size: 0.75rem; color: #8E8E93; display: block; margin-bottom: 4px; padding-left: 4px; }
+    .input-item input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #D1D1D6; background: #F9F9FB; font-size: 1rem; }
+    
+    /* 復健項目 - iOS 圓角卡片 */
+    .rehab-container { display: flex; flex-direction: column; gap: 12px; }
+    .rehab-group { background: #F9F9FB; padding: 15px; border-radius: 15px; }
+    .rehab-group-title { font-size: 0.85rem; font-weight: 700; color: var(--morandi-green); margin-bottom: 10px; }
+    .rehab-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+    
+    /* 稱謂與公用元件 */
+    .role-chip { padding: 6px 14px; border-radius: 20px; background: #E3E3E8; font-size: 0.85rem; cursor: pointer; margin: 3px; display: inline-block; border: none; }
+    .role-chip.active-red { background: var(--morandi-red); color: white; }
+    .role-chip.active-yellow { background: #8B7355; color: white; }
+    .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; }
+    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; box-shadow: 2px 4px 8px rgba(0,0,0,0.05); }
+    
+    .toggle { position: relative; width: 46px; height: 26px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; transition: .4s; border-radius: 34px; }
-    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background: var(--morandi-green-dark); }
-    input:checked + .slider:before { transform: translateX(22px); }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #D1D1D6; transition: .3s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background: #34C759; }
+    input:checked + .slider:before { transform: translateX(20px); }
+    
+    .btn-save { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .is-locked { pointer-events: none; opacity: 0.6; }
 </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header-nav">
-        <button onclick="changeDate(-1)" style="border:none; background:none; cursor:pointer;">◀ 前一天</button>
+<div id="password-screen">
+    <h2 style="margin-bottom:20px;">請輸入存取密碼</h2>
+    <input type="password" id="pwd-input" style="padding:15px; border-radius:12px; border:1px solid #ccc; width:200px; text-align:center; font-size:1.2rem;">
+    <button onclick="checkPwd()" style="margin-top:20px; padding:10px 30px; border-radius:10px; background:#007AFF; color:white; border:none; font-weight:bold;">登入系統</button>
+</div>
+
+<div class="app-container" id="main-app">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <button onclick="changeDate(-1)" style="border:none; background:none; font-size:1.2rem;">◀</button>
         <div style="text-align:center">
-            <input type="date" id="date-picker">
-            <div id="weekday-text" style="font-size:0.8rem; color:#666;"></div>
+            <input type="date" id="date-picker" style="border:none; background:none; font-size:1.1rem; font-weight:700;">
+            <div id="weekday-text" style="font-size:0.8rem; color:#8E8E93;"></div>
         </div>
-        <button onclick="changeDate(1)" style="border:none; background:none; cursor:pointer;">後一天 ▶</button>
+        <button onclick="changeDate(1)" style="border:none; background:none; font-size:1.2rem;">▶</button>
     </div>
 
-    <div class="card border-red">
-        <h3 class="section-title" style="color:var(--morandi-red)">📢 重要事項公佈欄 📢</h3>
-        <div class="card-body">
-            <div class="scroll-container" id="notice-list"></div>
-            <div style="margin-top:15px; border-top:1px solid #E2D2D2; padding-top:15px;">
-                <div class="role-selector" style="margin-bottom:10px;">
-                    <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span>
-                    <span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span>
-                    <span class="role-chip" onclick="setRole(this, 'notice')">叔叔</span>
-                    <span class="role-chip" onclick="setRole(this, 'notice')">嬸嬸</span>
-                    <span class="role-chip" onclick="setRole(this, 'notice')">溱</span>
-                    <span class="role-chip" onclick="setRole(this, 'notice')">琳</span>
-                    <span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
-                </div>
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="notice-input" placeholder="新增公佈事項..." style="flex:1; padding:10px; border-radius:12px; border:1px solid #ddd;">
-                    <button class="btn btn-rose" style="width:auto" onclick="addPost('notice')">發送</button>
-                </div>
+    <div class="card" style="border-top: 5px solid var(--morandi-red);">
+        <div class="section-title">📢 重要事項公佈欄</div>
+        <div class="scroll-container" id="notice-list"></div>
+        <div style="margin-top:10px; border-top:1px solid #eee; pt:10px;">
+            <div id="notice-roles">
+                <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span><span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span><span class="role-chip" onclick="setRole(this, 'notice')">叔叔</span><span class="role-chip" onclick="setRole(this, 'notice')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'notice')">溱</span><span class="role-chip" onclick="setRole(this, 'notice')">琳</span><span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                <input type="text" id="notice-input" placeholder="新增公佈事項..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd;">
+                <button onclick="addPost('notice')" style="background:var(--morandi-red); color:white; border:none; border-radius:10px; padding:0 15px;">發送</button>
             </div>
         </div>
     </div>
 
-    <div class="card border-blue">
-        <h3 class="section-title" style="color:var(--morandi-blue-dark)">📊 生理數值 📊</h3>
-        <div class="card-body" style="display:flex; flex-direction:column;">
-            <button class="btn btn" style="background:var(--morandi-blue-dark); width:auto; align-self:flex-end;" onclick="unlock('vital-grid')">✎ 編輯數值</button>
-            <div class="input-grid is-locked" id="vital-grid" style="margin-top:15px;">
-                <div class="input-group"><label>血壓</label><input type="text" id="v-bp" placeholder="120/80"></div>
-                <div class="input-group"><label>心跳</label><input type="number" id="v-hr"></div>
-                <div class="input-group"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
-                <div class="input-group"><label>喝水量</label><input type="number" id="v-water"></div>
-                <div class="input-group"><label>大號</label><input type="number" id="v-stool"></div>
-                <div class="input-group"><label>小號</label><input type="number" id="v-urine"></div>
-            </div>
-            <button class="btn btn-save-blue" onclick="saveVitalData()" style="margin-top:15px;">✔ 儲存並同步雲端</button>
-            <canvas id="trendChart" style="max-height:250px; margin-top:20px;"></canvas>
+    <div class="card" style="border-top: 5px solid var(--morandi-blue);">
+        <div class="section-title">📊 生理數值 (早/晚紀錄)</div>
+        <button onclick="unlock('vitals')" style="float:right; border:none; background:none; color:#007AFF;">✎ 編輯</button>
+        
+        <div class="vital-tabs">
+            <div class="v-tab active" onclick="switchVitalTab('morning')">早上</div>
+            <div class="v-tab" onclick="switchVitalTab('evening')">晚上</div>
         </div>
+
+        <div id="vitals" class="is-locked">
+            <div class="input-row">
+                <div class="input-item"><label id="bp-label">收縮壓</label><input type="number" id="v-sys"></div>
+                <div class="input-item"><label>舒張壓</label><input type="number" id="v-dia"></div>
+                <div class="input-item"><label>脈搏</label><input type="number" id="v-hr"></div>
+            </div>
+            <div style="font-size:0.75rem; color:#8E8E93; margin:10px 0 5px 4px;">每日共同欄位</div>
+            <div class="input-row">
+                <div class="input-item"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
+                <div class="input-item"><label>喝水量</label><input type="number" id="v-water"></div>
+                <div class="input-item"><label>大號</label><input type="number" id="v-stool"></div>
+            </div>
+            <div class="input-row">
+                <div class="input-item"><label>小號(尿布次數)</label><input type="number" id="v-urine"></div>
+            </div>
+        </div>
+        <button class="btn-save" style="background:var(--morandi-blue); color:white;" onclick="saveVitals()">✔ 儲存生理數值</button>
+        <canvas id="trendChart" style="margin-top:20px; max-height:200px;"></canvas>
     </div>
 
-    <div class="card border-purple">
-        <h3 class="section-title" style="color:var(--morandi-purple-dark)">💊 藥物紀錄 💊</h3>
-        <div class="card-body" style="display:flex; flex-direction:column;">
-            <button class="btn" style="background:var(--morandi-purple-dark); width:auto; align-self:flex-end;" onclick="unlock('med-action-area')">✎ 編輯藥物</button>
-            <div class="med-tab-group" style="margin-top:15px;">
-                <div class="med-tab active" onclick="switchMedTab(this, '早')">早上</div>
-                <div class="med-tab" onclick="switchMedTab(this, '中')">中午</div>
-                <div class="med-tab" onclick="switchMedTab(this, '晚')">晚上</div>
-            </div>
-            <div class="med-display-box" id="med-display-list"></div>
-            <div id="med-action-area" class="is-locked">
-                <span class="role-chip" onclick="publishMed('血壓藥')">血壓藥</span>
-                <span class="role-chip" onclick="publishMed('胃藥')">胃藥</span>
-                <span class="role-chip" onclick="publishMed('維他命')">維他命</span>
-                <span class="role-chip" onclick="publishMed('助眠藥')">助眠藥</span>
-                <span class="role-chip" onclick="publishMed('止痛藥')">止痛藥</span>
-            </div>
-            <button class="btn btn-save-purple" onclick="saveMedData()" style="margin-top:15px;">✔ 儲存藥物紀錄</button>
+    <div class="card" style="border-top: 5px solid var(--morandi-purple);">
+        <div class="section-title">💊 藥物紀錄</div>
+        <div id="med-display" style="min-height:50px; background:#F9F9FB; border-radius:12px; padding:10px; margin-bottom:10px;"></div>
+        <div id="med-btns">
+            <span class="role-chip" onclick="addMed('血壓藥')">血壓藥</span>
+            <span class="role-chip" onclick="addMed('身心科藥')">身心科藥</span>
+            <span class="role-chip" onclick="addMed('軟便劑')">軟便劑</span>
+            <span class="role-chip" onclick="addMed('抗生素')">抗生素</span>
+            <span class="role-chip" onclick="addMed('泌尿科外用藥')">泌尿科外用藥</span>
         </div>
+        <button class="btn-save" style="background:var(--morandi-purple); color:white;" onclick="saveMeds()">✔ 儲存藥物</button>
     </div>
 
-    <div class="card border-green">
-        <h3 class="section-title" style="color:var(--morandi-green-dark)">💪 復健紀錄 💪</h3>
-        <div class="card-body" style="display:flex; flex-direction:column;">
-            <button class="btn" style="background:var(--morandi-green-dark); width:auto; align-self:flex-end;" onclick="unlock('rehab-grid')">✎ 編輯紀錄</button>
-            <div id="rehab-grid" class="is-locked">
-                <div class="rehab-row"><span>早上：口腔肌肉、頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m"><span class="slider"></span></label></div>
-                <div class="rehab-row"><span>中午：口腔肌肉、關節活動</span><label class="toggle"><input type="checkbox" id="r-n"><span class="slider"></span></label></div>
-                <div class="rehab-row"><span>晚上：口腔肌肉、頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e"><span class="slider"></span></label></div>
+    <div class="card" style="border-top: 5px solid var(--morandi-green);">
+        <div class="section-title">💪 復健紀錄 (點擊切換)</div>
+        <div class="rehab-container" id="rehab-area">
+            <div class="rehab-group">
+                <div class="rehab-group-title">🌅 早上運動</div>
+                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-m-1"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m-2"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-m-3"><span class="slider"></span></label></div>
             </div>
-            <button class="btn btn-save-green" onclick="saveRehabData()" style="margin-top:15px;">✔ 儲存復健狀態</button>
+            <div class="rehab-group">
+                <div class="rehab-group-title">☀️ 中午運動</div>
+                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-n-1"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-n-2"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-n-3"><span class="slider"></span></label></div>
+            </div>
+            <div class="rehab-group">
+                <div class="rehab-group-title">🌙 晚上運動</div>
+                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-e-1"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e-2"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-e-3"><span class="slider"></span></label></div>
+            </div>
         </div>
+        <button class="btn-save" style="background:var(--morandi-green); color:white;" onclick="saveRehab()">✔ 儲存復健進度</button>
     </div>
 
-    <div class="card border-yellow">
-        <h3 class="section-title" style="color:#8B7355">📝 備註便利貼 📝</h3>
-        <div class="card-body">
-            <div class="scroll-container" id="note-list"></div>
-            <div style="margin-top:15px; border-top:1px solid #E6D9BC; padding-top:15px;">
-                <div class="role-selector" style="margin-bottom:10px;">
-                    <span class="role-chip" onclick="setRole(this, 'note')">媽媽</span>
-                    <span class="role-chip" onclick="setRole(this, 'note')">爸爸</span>
-                    <span class="role-chip" onclick="setRole(this, 'note')">叔叔</span>
-                    <span class="role-chip" onclick="setRole(this, 'note')">嬸嬸</span>
-                    <span class="role-chip" onclick="setRole(this, 'note')">溱</span>
-                    <span class="role-chip" onclick="setRole(this, 'note')">琳</span>
-                    <span class="role-chip" onclick="setRole(this, 'note')">瑄</span>
-                </div>
-                <textarea id="note-input" placeholder="輸入備註內容..." style="width:100%; padding:10px; border-radius:12px; border:1px solid #E6D9BC; min-height:80px;"></textarea>
-                <button class="btn" style="background:#8B7355; margin-top:10px;" onclick="addPost('note')">張貼便利貼</button>
+    <div class="card" style="border-top: 5px solid var(--morandi-yellow);">
+        <div class="section-title">📝 備註便利貼</div>
+        <div class="scroll-container" id="note-list"></div>
+        <div style="margin-top:10px; border-top:1px solid #eee; pt:10px;">
+            <div id="note-roles">
+                <span class="role-chip" onclick="setRole(this, 'note')">媽媽</span><span class="role-chip" onclick="setRole(this, 'note')">爸爸</span><span class="role-chip" onclick="setRole(this, 'note')">叔叔</span><span class="role-chip" onclick="setRole(this, 'note')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'note')">溱</span><span class="role-chip" onclick="setRole(this, 'note')">琳</span><span class="role-chip" onclick="setRole(this, 'note')">瑄</span>
             </div>
+            <textarea id="note-input" placeholder="點擊輸入備註..." style="width:100%; border-radius:12px; padding:10px; border:1px solid #ddd; margin-top:8px;"></textarea>
+            <button class="btn-save" style="background:#8B7355; color:white;" onclick="addPost('note')">張貼便利貼</button>
         </div>
     </div>
 </div>
@@ -178,105 +183,110 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    let currentVitalMode = 'morning'; 
+    let currentMeds = [];
     let curNoticeRole = "", curNoteRole = "", chartInstance = null;
-    let currentMedTab = "早", tempMedList = [], unsubDaily = null;
 
-    window.onload = () => {
+    // 密碼檢查
+    window.checkPwd = () => {
+        const input = document.getElementById('pwd-input').value;
+        if(input === "8888") { // 您可以在這裡修改密碼
+            document.getElementById('password-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            init();
+        } else {
+            alert("密碼錯誤！");
+        }
+    };
+
+    function init() {
         const today = new Date().toLocaleDateString('en-CA');
         document.getElementById('date-picker').value = today;
-        initSync(today);
-        initBoardSync('notice');
-        initBoardSync('note');
-    };
-
-    document.getElementById('date-picker').onchange = (e) => initSync(e.target.value);
-
-    window.changeDate = (n) => {
-        let d = new Date(document.getElementById('date-picker').value);
-        d.setDate(d.getDate() + n);
-        const newDate = d.toLocaleDateString('en-CA');
-        document.getElementById('date-picker').value = newDate;
-        initSync(newDate);
-    };
-
-    function initSync(date) {
-        if (unsubDaily) unsubDaily();
-        const dt = new Date(date);
-        const weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
-        document.getElementById('weekday-text').innerText = weeks[dt.getDay()];
-
-        unsubDaily = onSnapshot(doc(db, "daily_records", date), (docSnap) => {
-            if (docSnap.exists()) {
-                const d = docSnap.data();
-                document.getElementById('v-bp').value = d.bp || "";
-                document.getElementById('v-hr').value = d.hr || "";
-                document.getElementById('v-temp').value = d.temp || "";
-                document.getElementById('v-water').value = d.water || "";
-                document.getElementById('v-stool').value = d.stool || "";
-                document.getElementById('v-urine').value = d.urine || "";
-                document.getElementById('r-m').checked = d.rm || false;
-                document.getElementById('r-n').checked = d.rn || false;
-                document.getElementById('r-e').checked = d.re || false;
-                tempMedList = d.meds || [];
-                renderMeds();
-            } else {
-                document.querySelectorAll('input[type="text"], input[type="number"]').forEach(i => i.value = "");
-                document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
-                tempMedList = []; renderMeds();
-            }
-            updateChart();
-        });
+        syncData(today);
+        syncBoard('notice');
+        syncBoard('note');
     }
 
-    function initBoardSync(type) {
-        const q = query(collection(db, type + "s"), orderBy("id", "desc"), limit(15));
-        onSnapshot(q, (snapshot) => {
-            const posts = [];
-            snapshot.forEach(doc => posts.push({ docId: doc.id, ...doc.data() }));
-            document.getElementById(type + '-list').innerHTML = posts.map(p => `
-                <div class="post-it">
-                    <span style="font-size:0.7rem; color:#888;">${p.time}<br>發布者：${p.role}</span>
-                    <div style="margin:8px 0; font-size:0.95rem; word-break:break-all; white-space: pre-wrap;">${p.text}</div>
-                    <button onclick="deletePost('${type}', '${p.docId}')" style="font-size:0.7rem; cursor:pointer; background:none; border:1px solid #ffcccc; color:red; border-radius:5px;">刪除</button>
-                </div>
-            `).join('');
-        });
-    }
-
-    window.saveVitalData = async () => {
+    // 生理數值早晚切換
+    window.switchVitalTab = (mode) => {
+        document.querySelectorAll('.v-tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        currentVitalMode = mode;
         const date = document.getElementById('date-picker').value;
-        await setDoc(doc(db, "daily_records", date), {
-            bp: document.getElementById('v-bp').value,
-            hr: document.getElementById('v-hr').value,
+        syncData(date); // 切換時重新讀取當前模式數據
+    };
+
+    async function syncData(date) {
+        onSnapshot(doc(db, "daily_records", date), (snap) => {
+            const d = snap.data() || {};
+            // 早晚專有
+            const modeData = d[currentVitalMode] || {};
+            document.getElementById('v-sys').value = modeData.sys || "";
+            document.getElementById('v-dia').value = modeData.dia || "";
+            document.getElementById('v-hr').value = modeData.hr || "";
+            // 公用
+            document.getElementById('v-temp').value = d.temp || "";
+            document.getElementById('v-water').value = d.water || "";
+            document.getElementById('v-stool').value = d.stool || "";
+            document.getElementById('v-urine').value = d.urine || "";
+            // 藥物與復健
+            currentMeds = d.meds || [];
+            renderMeds();
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`r-m-${i}`).checked = d[`rm${i}`] || false;
+                document.getElementById(`r-n-${i}`).checked = d[`rn${i}`] || false;
+                document.getElementById(`r-e-${i}`).checked = d[`re${i}`] || false;
+            }
+            updateChart(d);
+        });
+    }
+
+    window.saveVitals = async () => {
+        const date = document.getElementById('date-picker').value;
+        const updateObj = {
+            [currentVitalMode]: {
+                sys: document.getElementById('v-sys').value,
+                dia: document.getElementById('v-dia').value,
+                hr: document.getElementById('v-hr').value
+            },
             temp: document.getElementById('v-temp').value,
             water: document.getElementById('v-water').value,
             stool: document.getElementById('v-stool').value,
             urine: document.getElementById('v-urine').value
-        }, { merge: true });
-        document.getElementById('vital-grid').classList.add('is-locked');
+        };
+        await setDoc(doc(db, "daily_records", date), updateObj, { merge: true });
+        document.getElementById('vitals').classList.add('is-locked');
     };
 
-    window.saveRehabData = async () => {
+    window.addMed = (name) => { currentMeds.push({id: Date.now(), name}); renderMeds(); };
+    window.saveMeds = async () => {
         const date = document.getElementById('date-picker').value;
-        await setDoc(doc(db, "daily_records", date), {
-            rm: document.getElementById('r-m').checked,
-            rn: document.getElementById('r-n').checked,
-            re: document.getElementById('r-e').checked
-        }, { merge: true });
-        document.getElementById('rehab-grid').classList.add('is-locked');
+        await setDoc(doc(db, "daily_records", date), { meds: currentMeds }, { merge: true });
+    };
+    function renderMeds() {
+        document.getElementById('med-display').innerHTML = currentMeds.map(m => `<span style="background:#eee; padding:5px 10px; border-radius:8px; margin:4px; display:inline-block;">${m.name} <b onclick="removeMed(${m.id})" style="color:red; cursor:pointer">×</b></span>`).join('');
+    }
+    window.removeMed = (id) => { currentMeds = currentMeds.filter(m => m.id !== id); renderMeds(); };
+
+    window.saveRehab = async () => {
+        const date = document.getElementById('date-picker').value;
+        const obj = {};
+        ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) obj[`r${p}${i}`] = document.getElementById(`r-${p}-${i}`).checked; });
+        await setDoc(doc(db, "daily_records", date), obj, { merge: true });
     };
 
-    window.saveMedData = async () => {
-        const date = document.getElementById('date-picker').value;
-        await setDoc(doc(db, "daily_records", date), { meds: tempMedList }, { merge: true });
-        document.getElementById('med-action-area').classList.add('is-locked');
+    // 其他原有邏輯 (稱謂/公佈欄/日期)
+    window.setRole = (el, type) => {
+        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red','active-yellow'));
+        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
+        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
     };
 
     window.addPost = async (type) => {
         const role = (type === 'notice') ? curNoticeRole : curNoteRole;
-        if(!role) { alert("請先選擇您的稱謂"); return; }
+        if(!role) return alert("請選稱謂");
         const input = document.getElementById(type + '-input');
-        if(!input.value.trim()) return;
+        if(!input.value) return;
         const newId = Date.now();
         await setDoc(doc(collection(db, type + "s"), newId.toString()), {
             id: newId, role, text: input.value, time: new Date().toLocaleString()
@@ -284,40 +294,44 @@
         input.value = "";
     };
 
-    window.deletePost = async (type, docId) => {
-        if(confirm("確定刪除這條訊息嗎？")) await deleteDoc(doc(db, type + "s", docId));
-    };
-
-    window.unlock = (id) => document.getElementById(id).classList.remove('is-locked');
-    window.switchMedTab = (el, time) => {
-        document.querySelectorAll('.med-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        currentMedTab = time; renderMeds();
-    };
-    window.publishMed = (name) => { tempMedList.push({ id: Date.now(), timeTag: currentMedTab, name: name }); renderMeds(); };
-    window.removeMed = (id) => { tempMedList = tempMedList.filter(m => m.id !== id); renderMeds(); };
-    function renderMeds() {
-        const listArea = document.getElementById('med-display-list');
-        const filtered = tempMedList.filter(m => m.timeTag === currentMedTab);
-        listArea.innerHTML = filtered.map(m => `<div class="med-item"><span>● ${m.name}</span><button onclick="removeMed(${m.id})" style="background:none; border:none; color:red; cursor:pointer;">✕</button></div>`).join('') || `<div style="color:#aaa; text-align:center; padding:10px;">${currentMedTab}無紀錄</div>`;
+    function syncBoard(type) {
+        const q = query(collection(db, type + "s"), orderBy("id", "desc"), limit(10));
+        onSnapshot(q, (snap) => {
+            const html = [];
+            snap.forEach(doc => {
+                const p = doc.data();
+                html.push(`<div class="post-it" style="background:${type==='notice'?'#FFF1F1':'#FFF9E6'}">
+                    <small>${p.role} @ ${p.time}</small><br>${p.text}
+                    <div onclick="deletePost('${type}','${doc.id}')" style="color:red; font-size:0.7rem; cursor:pointer; text-align:right;">刪除</div>
+                </div>`);
+            });
+            document.getElementById(type + '-list').innerHTML = html.join('');
+        });
     }
-    window.setRole = (el, type) => {
-        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red', 'active-yellow'));
-        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
-        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
+
+    window.deletePost = async (type, id) => { if(confirm("刪除？")) await deleteDoc(doc(db, type+"s", id)); };
+    window.unlock = (id) => document.getElementById(id).classList.remove('is-locked');
+    window.changeDate = (n) => {
+        let d = new Date(document.getElementById('date-picker').value);
+        d.setDate(d.getDate() + n);
+        document.getElementById('date-picker').value = d.toLocaleDateString('en-CA');
+        syncData(document.getElementById('date-picker').value);
     };
 
-    function updateChart() {
+    function updateChart(d) {
         const ctx = document.getElementById('trendChart').getContext('2d');
         if(chartInstance) chartInstance.destroy();
+        const m = d.morning || {};
+        const e = d.evening || {};
         chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: { 
-                labels: ['今日紀錄'], 
-                datasets: [
-                    { label: '血壓', data: [parseInt(document.getElementById('v-bp').value) || 0], borderColor: '#B07D7D' },
-                    { label: '心跳', data: [parseInt(document.getElementById('v-hr').value) || 0], borderColor: '#8DA1B9' }
-                ]
+            type: 'bar',
+            data: {
+                labels: ['早-收縮', '早-舒張', '早-脈搏', '晚-收縮', '晚-舒張', '晚-脈搏', '體溫'],
+                datasets: [{
+                    label: '數值',
+                    data: [m.sys, m.dia, m.hr, e.sys, e.dia, e.hr, d.temp],
+                    backgroundColor: ['#B07D7D','#B07D7D','#8DA1B9','#5D7A99','#5D7A99','#3E5671','#8BA8A1']
+                }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
