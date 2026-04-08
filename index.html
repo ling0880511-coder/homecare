@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 居家照護雲端系統 V14</title>
+<title>2026 居家照護雲端系統 V15</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
@@ -42,9 +42,9 @@
     .role-chip.active-red { background: var(--morandi-red); color: white; }
     .role-chip.active-yellow { background: #8B7355; color: white; }
     
-    .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; min-height: 100px; }
-    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; border: 1px solid #E6D9BC; line-height: 1.5; position: relative; }
-    .post-it.pinned { border: 2px solid #FF9500; background: #FFF4D1; }
+    .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; min-height: 120px; }
+    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; border: 1px solid #E6D9BC; line-height: 1.5; position: relative; transition: 0.3s; }
+    .post-it.pinned { border: 2px solid #FF9500; background: #FFF4D1; box-shadow: 0 4px 8px rgba(255,149,0,0.2); }
 
     .toggle { position: relative; width: 46px; height: 26px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
@@ -84,7 +84,7 @@
                 <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span><span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span><span class="role-chip" onclick="setRole(this, 'notice')">叔叔</span><span class="role-chip" onclick="setRole(this, 'notice')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'notice')">溱</span><span class="role-chip" onclick="setRole(this, 'notice')">琳</span><span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
             </div>
             <div style="display:flex; gap:10px; margin-top:12px;">
-                <input type="text" id="notice-input" placeholder="訊息或連結..." style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
+                <input type="text" id="notice-input" placeholder="訊息或影片連結..." style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
                 <button onclick="addPost('notice')" style="background:var(--morandi-red); color:white; border:none; border-radius:12px; padding:0 20px; font-weight:bold;">發送</button>
             </div>
         </div>
@@ -212,7 +212,6 @@
         return text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color:#007AFF;text-decoration:underline;word-break:break-all;">${url}</a>`);
     }
 
-    // 資料同步
     async function syncData(date) {
         onSnapshot(doc(db, "daily_records", date), (snap) => {
             const d = snap.data() || {};
@@ -234,13 +233,11 @@
         });
     }
 
-    // 解鎖邏輯
     window.unlock = (id) => {
         if(id === 'med-section') { isEditingMeds = true; document.getElementById(id).classList.remove('hidden'); renderMeds(); }
         else { document.getElementById(id).classList.remove('is-locked'); }
     };
 
-    // 藥物處理
     window.addMed = (name) => { currentMeds.push({id: Date.now(), name}); renderMeds(); };
     window.removeMed = (id) => { currentMeds = currentMeds.filter(m => m.id !== id); renderMeds(); };
     function renderMeds() {
@@ -254,7 +251,6 @@
         isEditingMeds = false; document.getElementById('med-section').classList.add('hidden'); renderMeds();
     };
 
-    // 儲存邏輯
     window.saveVitals = async () => {
         const updateObj = { [currentVitalMode]: { sys: document.getElementById('v-sys').value, dia: document.getElementById('v-dia').value, hr: document.getElementById('v-hr').value, sugar: document.getElementById('v-sugar').value }, temp: document.getElementById('v-temp').value, water: document.getElementById('v-water').value, stool: document.getElementById('v-stool').value, urine: document.getElementById('v-urine').value };
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), updateObj, { merge: true });
@@ -266,23 +262,31 @@
         document.getElementById('rehab-area').classList.add('is-locked');
     };
 
-    // 修正後的公佈欄同步 (相容舊資料)
+    // 公佈欄同步：改為「抓取所有資料」後在前端排序，解決資料消失問題
     function syncBoard(type) {
-        // 先按 ID 排序，確保所有資料都能進來，置頂邏輯在前端處理
-        onSnapshot(query(collection(db, type + "s"), orderBy("id", "desc"), limit(20)), (snap) => {
-            const allPosts = [];
-            snap.forEach(docSnap => allPosts.push({ id: docSnap.id, ...docSnap.data() }));
-            
-            // 在前端手動排序：有 pinned 為 true 的排前面
-            allPosts.sort((a, b) => (b.pinned || false) - (a.pinned || false));
+        onSnapshot(collection(db, type + "s"), (snap) => {
+            let allPosts = [];
+            snap.forEach(docSnap => {
+                const data = docSnap.data();
+                allPosts.push({ id: docSnap.id, ...data });
+            });
 
-            const html = allPosts.map(p => `
+            // 前端排序邏輯：1. 置頂優先 2. 時間倒序
+            allPosts.sort((a, b) => {
+                const aPinned = a.pinned || false;
+                const bPinned = b.pinned || false;
+                if (aPinned !== bPinned) return bPinned - aPinned;
+                return (b.id || 0) - (a.id || 0); // 這裡用 id 作為時間排序的依據
+            });
+
+            const html = allPosts.slice(0, 15).map(p => `
                 <div class="post-it ${p.pinned ? 'pinned' : ''}">
-                    ${p.pinned ? '<span style="position:absolute; top:5px; right:10px; font-size:0.7rem;">📌 置頂</span>' : ''}
-                    <b>${p.role || "匿名"}</b> <small>${p.time || ""}</small><br>${linkify(p.text)}<br>
-                    <div style="margin-top:8px; display:flex; gap:10px;">
-                        <span onclick="togglePin('${type}','${p.id}', ${p.pinned || false})" style="color:#FF9500; font-size:0.7rem; cursor:pointer;">${p.pinned ? '取消置頂' : '📌 置頂'}</span>
-                        <span onclick="deletePost('${type}','${p.id}')" style="color:red; font-size:0.7rem; cursor:pointer;">刪除</span>
+                    ${p.pinned ? '<span style="position:absolute; top:5px; right:10px; font-size:0.7rem; font-weight:bold;">📌 置頂</span>' : ''}
+                    <b>${p.role || "匿名"}</b> <small style="color:#888;">${p.time || ""}</small><br>
+                    <div style="margin:8px 0;">${linkify(p.text)}</div>
+                    <div style="margin-top:10px; display:flex; gap:12px;">
+                        <span onclick="togglePin('${type}','${p.id}', ${p.pinned || false})" style="color:#FF9500; font-size:0.75rem; cursor:pointer; font-weight:bold;">${p.pinned ? '取消置頂' : '📌 置頂'}</span>
+                        <span onclick="deletePost('${type}','${p.id}')" style="color:red; font-size:0.75rem; cursor:pointer;">刪除</span>
                     </div>
                 </div>`).join('');
             document.getElementById(type + '-list').innerHTML = html || '<div style="color:#888; padding:20px;">尚無訊息</div>';
@@ -295,14 +299,20 @@
 
     window.addPost = async (type) => {
         const role = (type === 'notice') ? curNoticeRole : curNoteRole;
-        if(!role) return alert("請先點選您的稱謂");
+        if(!role) return alert("請先選擇您的稱謂");
         const input = document.getElementById(type + '-input');
-        if(!input.value) return;
-        await setDoc(doc(collection(db, type + "s"), Date.now().toString()), { role, text: input.value, time: new Date().toLocaleString(), id: Date.now(), pinned: false });
+        if(!input.value.trim()) return;
+        // 存檔時統一加上 pinned 預設值，確保資料結構一致
+        await setDoc(doc(collection(db, type + "s"), Date.now().toString()), { 
+            role, 
+            text: input.value, 
+            time: new Date().toLocaleString(), 
+            id: Date.now(), 
+            pinned: false 
+        });
         input.value = "";
     };
 
-    // 其餘工具
     window.switchVitalTab = (mode) => {
         document.querySelectorAll('.v-tab').forEach(t => t.classList.remove('active'));
         event.target.classList.add('active'); currentVitalMode = mode;
