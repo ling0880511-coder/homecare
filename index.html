@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 居家照護雲端系統 V9</title>
+<title>2026 居家照護雲端系統 V10</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
@@ -12,37 +12,39 @@
         --morandi-red: #B07D7D;    --morandi-blue: #8DA1B9;
         --morandi-green: #8BA8A1;  --morandi-purple: #9692AF;
         --morandi-yellow: #CDBE9A; --text-main: #1C1C1E;
+        --border-dark: #D1D1D6;
     }
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
     body { background-color: var(--ios-bg); margin: 0; padding: 20px; color: var(--text-main); display: flex; justify-content: center; }
     #password-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--ios-bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .app-container { width: 100%; max-width: 850px; display: none; } /* 初始隱藏，密碼正確才顯示 */
+    .app-container { width: 100%; max-width: 850px; display: none; }
     
-    /* iOS 卡片風格 */
-    .card { background: var(--card-bg); border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; }
-    .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #3A3A3C; }
+    /* 卡片設計 - 整圈深色效果 */
+    .card { background: var(--card-bg); border-radius: 20px; margin-bottom: 25px; border: 2px solid #C7C7CC; padding: 20px; }
+    .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; text-align: center; display: block; color: #3A3A3C; }
     
-    /* 生理數值 - 早晚分開 */
-    .vital-tabs { display: flex; background: #E3E3E8; border-radius: 10px; padding: 2px; margin-bottom: 15px; }
-    .v-tab { flex: 1; text-align: center; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+    /* 生理數值區分 */
+    .vital-tabs { display: flex; background: #E3E3E8; border-radius: 12px; padding: 3px; margin-bottom: 15px; }
+    .v-tab { flex: 1; text-align: center; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
     .v-tab.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     
-    .input-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-    .input-item label { font-size: 0.75rem; color: #8E8E93; display: block; margin-bottom: 4px; padding-left: 4px; }
-    .input-item input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #D1D1D6; background: #F9F9FB; font-size: 1rem; }
+    /* 欄位顏色區分 */
+    .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
+    .field-indep input { border: 2px solid var(--morandi-blue) !important; background: #F0F4F7; } /* 獨立欄位藍色 */
+    .field-common input { border: 2px solid var(--morandi-green) !important; background: #F2F6F5; } /* 共用欄位綠色 */
     
-    /* 復健項目 - iOS 圓角卡片 */
-    .rehab-container { display: flex; flex-direction: column; gap: 12px; }
-    .rehab-group { background: #F9F9FB; padding: 15px; border-radius: 15px; }
-    .rehab-group-title { font-size: 0.85rem; font-weight: 700; color: var(--morandi-green); margin-bottom: 10px; }
-    .rehab-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+    .input-item label { font-size: 0.8rem; color: #4A4A4A; display: block; margin-bottom: 4px; font-weight: 600; }
+    .input-item input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #D1D1D6; font-size: 1rem; outline: none; }
     
-    /* 稱謂與公用元件 */
-    .role-chip { padding: 6px 14px; border-radius: 20px; background: #E3E3E8; font-size: 0.85rem; cursor: pointer; margin: 3px; display: inline-block; border: none; }
+    /* 復健項目 */
+    .rehab-group { background: #F9F9FB; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #E5E5EA; }
+    .rehab-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #EFEEF2; }
+    
+    .role-chip { padding: 8px 16px; border-radius: 20px; background: #E3E3E8; font-size: 0.85rem; cursor: pointer; margin: 4px; display: inline-block; border: none; }
     .role-chip.active-red { background: var(--morandi-red); color: white; }
     .role-chip.active-yellow { background: #8B7355; color: white; }
     .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; }
-    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; box-shadow: 2px 4px 8px rgba(0,0,0,0.05); }
+    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; border: 1px solid #E6D9BC; }
     
     .toggle { position: relative; width: 46px; height: 26px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
@@ -51,117 +53,126 @@
     input:checked + .slider { background: #34C759; }
     input:checked + .slider:before { transform: translateX(20px); }
     
-    .btn-save { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .btn-save { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+    .btn-save:active { transform: scale(0.98); }
     .is-locked { pointer-events: none; opacity: 0.6; }
 </style>
 </head>
 <body>
 
 <div id="password-screen">
-    <h2 style="margin-bottom:20px;">請輸入存取密碼</h2>
-    <input type="password" id="pwd-input" style="padding:15px; border-radius:12px; border:1px solid #ccc; width:200px; text-align:center; font-size:1.2rem;">
-    <button onclick="checkPwd()" style="margin-top:20px; padding:10px 30px; border-radius:10px; background:#007AFF; color:white; border:none; font-weight:bold;">登入系統</button>
+    <h2 style="margin-bottom:20px;">🛡️ 居家照護系統登入</h2>
+    <input type="password" id="pwd-input" placeholder="請輸入密碼" style="padding:15px; border-radius:12px; border:2px solid #ccc; width:220px; text-align:center; font-size:1.2rem;">
+    <button onclick="checkPwd()" style="margin-top:20px; padding:12px 40px; border-radius:12px; background:#1C1C1E; color:white; border:none; font-weight:bold;">驗證</button>
 </div>
 
 <div class="app-container" id="main-app">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <button onclick="changeDate(-1)" style="border:none; background:none; font-size:1.2rem;">◀</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding: 0 10px;">
+        <button onclick="changeDate(-1)" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">◀</button>
         <div style="text-align:center">
-            <input type="date" id="date-picker" style="border:none; background:none; font-size:1.1rem; font-weight:700;">
-            <div id="weekday-text" style="font-size:0.8rem; color:#8E8E93;"></div>
+            <input type="date" id="date-picker" style="border:none; background:none; font-size:1.2rem; font-weight:800; color:#1C1C1E;">
+            <div id="weekday-text" style="font-size:0.9rem; color:#8E8E93; margin-top:4px;"></div>
         </div>
-        <button onclick="changeDate(1)" style="border:none; background:none; font-size:1.2rem;">▶</button>
+        <button onclick="changeDate(1)" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">▶</button>
     </div>
 
-    <div class="card" style="border-top: 5px solid var(--morandi-red);">
-        <div class="section-title">📢 重要事項公佈欄</div>
+    <div class="card" style="border-color: var(--morandi-red);">
+        <div class="section-title">📢 重要事項公佈欄 📢</div>
         <div class="scroll-container" id="notice-list"></div>
-        <div style="margin-top:10px; border-top:1px solid #eee; pt:10px;">
-            <div id="notice-roles">
+        <div style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+            <div id="notice-roles" style="text-align:center;">
                 <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span><span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span><span class="role-chip" onclick="setRole(this, 'notice')">叔叔</span><span class="role-chip" onclick="setRole(this, 'notice')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'notice')">溱</span><span class="role-chip" onclick="setRole(this, 'notice')">琳</span><span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
             </div>
-            <div style="display:flex; gap:8px; margin-top:8px;">
-                <input type="text" id="notice-input" placeholder="新增公佈事項..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd;">
-                <button onclick="addPost('notice')" style="background:var(--morandi-red); color:white; border:none; border-radius:10px; padding:0 15px;">發送</button>
+            <div style="display:flex; gap:10px; margin-top:12px;">
+                <input type="text" id="notice-input" placeholder="寫下重要叮嚀..." style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
+                <button onclick="addPost('notice')" style="background:var(--morandi-red); color:white; border:none; border-radius:12px; padding:0 20px; font-weight:bold;">發送</button>
             </div>
         </div>
     </div>
 
-    <div class="card" style="border-top: 5px solid var(--morandi-blue);">
-        <div class="section-title">📊 生理數值 (早/晚紀錄)</div>
-        <button onclick="unlock('vitals')" style="float:right; border:none; background:none; color:#007AFF;">✎ 編輯</button>
+    <div class="card" style="border-color: var(--morandi-blue);">
+        <div class="section-title">📊 生理數值 📊</div>
+        <div style="text-align:right; margin-bottom:10px;">
+            <button onclick="unlock('vitals')" style="border:none; background:none; color:#007AFF; font-weight:bold; cursor:pointer;">✎ 編輯數值</button>
+        </div>
         
         <div class="vital-tabs">
-            <div class="v-tab active" onclick="switchVitalTab('morning')">早上</div>
-            <div class="v-tab" onclick="switchVitalTab('evening')">晚上</div>
+            <div class="v-tab active" onclick="switchVitalTab('morning')">早上紀錄</div>
+            <div class="v-tab" onclick="switchVitalTab('evening')">晚上紀錄</div>
         </div>
 
         <div id="vitals" class="is-locked">
-            <div class="input-row">
-                <div class="input-item"><label id="bp-label">收縮壓</label><input type="number" id="v-sys"></div>
+            <div class="input-row field-indep">
+                <div class="input-item"><label>收縮壓</label><input type="number" id="v-sys"></div>
                 <div class="input-item"><label>舒張壓</label><input type="number" id="v-dia"></div>
                 <div class="input-item"><label>脈搏</label><input type="number" id="v-hr"></div>
+                <div class="input-item"><label>血糖</label><input type="number" id="v-sugar"></div>
             </div>
-            <div style="font-size:0.75rem; color:#8E8E93; margin:10px 0 5px 4px;">每日共同欄位</div>
-            <div class="input-row">
+            <div class="input-row field-common">
                 <div class="input-item"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
                 <div class="input-item"><label>喝水量</label><input type="number" id="v-water"></div>
                 <div class="input-item"><label>大號</label><input type="number" id="v-stool"></div>
-            </div>
-            <div class="input-row">
-                <div class="input-item"><label>小號(尿布次數)</label><input type="number" id="v-urine"></div>
+                <div class="input-item"><label>小號(尿布)</label><input type="number" id="v-urine"></div>
             </div>
         </div>
-        <button class="btn-save" style="background:var(--morandi-blue); color:white;" onclick="saveVitals()">✔ 儲存生理數值</button>
-        <canvas id="trendChart" style="margin-top:20px; max-height:200px;"></canvas>
+        <button class="btn-save" style="background:var(--morandi-blue); color:white;" onclick="saveVitals()">✔ 儲存並同步雲端</button>
+        
+        <div style="margin-top:25px;">
+            <p style="text-align:center; font-size:0.9rem; font-weight:bold; color:#666;">📊 每日數值對比 📊</p>
+            <canvas id="dayChart" style="max-height:220px;"></canvas>
+        </div>
+        <div style="margin-top:35px; border-top:1px dashed #ccc; pt:20px;">
+            <p style="text-align:center; font-size:0.9rem; font-weight:bold; color:#666;">📈 本月趨勢回顧 📈</p>
+            <canvas id="monthChart" style="max-height:220px;"></canvas>
+        </div>
     </div>
 
-    <div class="card" style="border-top: 5px solid var(--morandi-purple);">
-        <div class="section-title">💊 藥物紀錄</div>
-        <div id="med-display" style="min-height:50px; background:#F9F9FB; border-radius:12px; padding:10px; margin-bottom:10px;"></div>
-        <div id="med-btns">
+    <div class="card" style="border-color: var(--morandi-purple);">
+        <div class="section-title">💊 藥物紀錄 💊</div>
+        <div id="med-display" style="min-height:60px; background:#F2F2F7; border-radius:15px; padding:15px; margin-bottom:15px; border:1px solid #E5E5EA;"></div>
+        <div id="med-btns" style="text-align:center;">
             <span class="role-chip" onclick="addMed('血壓藥')">血壓藥</span>
             <span class="role-chip" onclick="addMed('身心科藥')">身心科藥</span>
             <span class="role-chip" onclick="addMed('軟便劑')">軟便劑</span>
             <span class="role-chip" onclick="addMed('抗生素')">抗生素</span>
             <span class="role-chip" onclick="addMed('泌尿科外用藥')">泌尿科外用藥</span>
         </div>
-        <button class="btn-save" style="background:var(--morandi-purple); color:white;" onclick="saveMeds()">✔ 儲存藥物</button>
+        <button class="btn-save" style="background:var(--morandi-purple); color:white;" onclick="saveMeds()">✔ 儲存當前藥物</button>
     </div>
 
-    <div class="card" style="border-top: 5px solid var(--morandi-green);">
-        <div class="section-title">💪 復健紀錄 (點擊切換)</div>
+    <div class="card" style="border-color: var(--morandi-green);">
+        <div class="section-title">💪 復健紀錄 💪</div>
         <div class="rehab-container" id="rehab-area">
             <div class="rehab-group">
-                <div class="rehab-group-title">🌅 早上運動</div>
+                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌅 早上</div>
                 <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-m-1"><span class="slider"></span></label></div>
                 <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m-2"><span class="slider"></span></label></div>
                 <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-m-3"><span class="slider"></span></label></div>
             </div>
             <div class="rehab-group">
-                <div class="rehab-group-title">☀️ 中午運動</div>
+                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">☀️ 中午</div>
                 <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-n-1"><span class="slider"></span></label></div>
                 <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-n-2"><span class="slider"></span></label></div>
                 <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-n-3"><span class="slider"></span></label></div>
             </div>
             <div class="rehab-group">
-                <div class="rehab-group-title">🌙 晚上運動</div>
+                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌙 晚上</div>
                 <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-e-1"><span class="slider"></span></label></div>
                 <div class="rehab-item"><span>🦒 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e-2"><span class="slider"></span></label></div>
                 <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-e-3"><span class="slider"></span></label></div>
             </div>
         </div>
-        <button class="btn-save" style="background:var(--morandi-green); color:white;" onclick="saveRehab()">✔ 儲存復健進度</button>
+        <button class="btn-save" style="background:var(--morandi-green); color:white;" onclick="saveRehab()">✔ 儲存運動進度</button>
     </div>
 
-    <div class="card" style="border-top: 5px solid var(--morandi-yellow);">
-        <div class="section-title">📝 備註便利貼</div>
+    <div class="card" style="border-color: var(--morandi-yellow);">
+        <div class="section-title">📝 備註便利貼 📝</div>
         <div class="scroll-container" id="note-list"></div>
-        <div style="margin-top:10px; border-top:1px solid #eee; pt:10px;">
-            <div id="note-roles">
+        <div style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+            <div id="note-roles" style="text-align:center;">
                 <span class="role-chip" onclick="setRole(this, 'note')">媽媽</span><span class="role-chip" onclick="setRole(this, 'note')">爸爸</span><span class="role-chip" onclick="setRole(this, 'note')">叔叔</span><span class="role-chip" onclick="setRole(this, 'note')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'note')">溱</span><span class="role-chip" onclick="setRole(this, 'note')">琳</span><span class="role-chip" onclick="setRole(this, 'note')">瑄</span>
             </div>
-            <textarea id="note-input" placeholder="點擊輸入備註..." style="width:100%; border-radius:12px; padding:10px; border:1px solid #ddd; margin-top:8px;"></textarea>
+            <textarea id="note-input" placeholder="有什麼想紀錄的..." style="width:100%; border-radius:12px; padding:12px; border:1px solid #ddd; margin-top:10px; min-height:80px;"></textarea>
             <button class="btn-save" style="background:#8B7355; color:white;" onclick="addPost('note')">張貼便利貼</button>
         </div>
     </div>
@@ -169,7 +180,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC-9FQXNj-4wxUZdTe1utc52tkOut9VcYQ",
@@ -185,18 +196,15 @@
 
     let currentVitalMode = 'morning'; 
     let currentMeds = [];
-    let curNoticeRole = "", curNoteRole = "", chartInstance = null;
+    let curNoticeRole = "", curNoteRole = "";
+    let dayChart = null, monthChart = null;
 
-    // 密碼檢查
     window.checkPwd = () => {
-        const input = document.getElementById('pwd-input').value;
-        if(input === "8888") { // 您可以在這裡修改密碼
+        if(document.getElementById('pwd-input').value === "8888") {
             document.getElementById('password-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             init();
-        } else {
-            alert("密碼錯誤！");
-        }
+        } else { alert("密碼錯誤"); }
     };
 
     function init() {
@@ -205,39 +213,34 @@
         syncData(today);
         syncBoard('notice');
         syncBoard('note');
+        updateMonthChart();
     }
 
-    // 生理數值早晚切換
     window.switchVitalTab = (mode) => {
         document.querySelectorAll('.v-tab').forEach(t => t.classList.remove('active'));
         event.target.classList.add('active');
         currentVitalMode = mode;
-        const date = document.getElementById('date-picker').value;
-        syncData(date); // 切換時重新讀取當前模式數據
+        syncData(document.getElementById('date-picker').value);
     };
 
     async function syncData(date) {
         onSnapshot(doc(db, "daily_records", date), (snap) => {
             const d = snap.data() || {};
-            // 早晚專有
             const modeData = d[currentVitalMode] || {};
             document.getElementById('v-sys').value = modeData.sys || "";
             document.getElementById('v-dia').value = modeData.dia || "";
             document.getElementById('v-hr').value = modeData.hr || "";
-            // 公用
+            document.getElementById('v-sugar').value = modeData.sugar || "";
             document.getElementById('v-temp').value = d.temp || "";
             document.getElementById('v-water').value = d.water || "";
             document.getElementById('v-stool').value = d.stool || "";
             document.getElementById('v-urine').value = d.urine || "";
-            // 藥物與復健
-            currentMeds = d.meds || [];
-            renderMeds();
-            for(let i=1; i<=3; i++) {
-                document.getElementById(`r-m-${i}`).checked = d[`rm${i}`] || false;
-                document.getElementById(`r-n-${i}`).checked = d[`rn${i}`] || false;
-                document.getElementById(`r-e-${i}`).checked = d[`re${i}`] || false;
-            }
-            updateChart(d);
+            currentMeds = d.meds || []; renderMeds();
+            ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) document.getElementById(`r-${p}-${i}`).checked = d[`r${p}${i}`] || false; });
+            updateDayChart(d);
+            const dt = new Date(date);
+            const weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+            document.getElementById('weekday-text').innerText = weeks[dt.getDay()];
         });
     }
 
@@ -247,7 +250,8 @@
             [currentVitalMode]: {
                 sys: document.getElementById('v-sys').value,
                 dia: document.getElementById('v-dia').value,
-                hr: document.getElementById('v-hr').value
+                hr: document.getElementById('v-hr').value,
+                sugar: document.getElementById('v-sugar').value
             },
             temp: document.getElementById('v-temp').value,
             water: document.getElementById('v-water').value,
@@ -256,59 +260,88 @@
         };
         await setDoc(doc(db, "daily_records", date), updateObj, { merge: true });
         document.getElementById('vitals').classList.add('is-locked');
+        updateMonthChart();
     };
 
     window.addMed = (name) => { currentMeds.push({id: Date.now(), name}); renderMeds(); };
-    window.saveMeds = async () => {
-        const date = document.getElementById('date-picker').value;
-        await setDoc(doc(db, "daily_records", date), { meds: currentMeds }, { merge: true });
-    };
-    function renderMeds() {
-        document.getElementById('med-display').innerHTML = currentMeds.map(m => `<span style="background:#eee; padding:5px 10px; border-radius:8px; margin:4px; display:inline-block;">${m.name} <b onclick="removeMed(${m.id})" style="color:red; cursor:pointer">×</b></span>`).join('');
-    }
+    window.saveMeds = async () => { await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), { meds: currentMeds }, { merge: true }); };
+    function renderMeds() { document.getElementById('med-display').innerHTML = currentMeds.map(m => `<span style="background:#fff; border:1px solid #ddd; padding:5px 10px; border-radius:8px; margin:4px; display:inline-block;">${m.name} <b onclick="removeMed(${m.id})" style="color:red; cursor:pointer">×</b></span>`).join(''); }
     window.removeMed = (id) => { currentMeds = currentMeds.filter(m => m.id !== id); renderMeds(); };
 
     window.saveRehab = async () => {
-        const date = document.getElementById('date-picker').value;
         const obj = {};
         ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) obj[`r${p}${i}`] = document.getElementById(`r-${p}-${i}`).checked; });
-        await setDoc(doc(db, "daily_records", date), obj, { merge: true });
+        await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), obj, { merge: true });
     };
 
-    // 其他原有邏輯 (稱謂/公佈欄/日期)
+    function updateDayChart(d) {
+        const ctx = document.getElementById('dayChart').getContext('2d');
+        if(dayChart) dayChart.destroy();
+        const m = d.morning || {}, e = d.evening || {};
+        dayChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['收縮壓', '舒張壓', '脈搏', '血糖'],
+                datasets: [
+                    { label: '早上', data: [m.sys, m.dia, m.hr, m.sugar], backgroundColor: '#8DA1B9' },
+                    { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar], backgroundColor: '#5D7A99' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    async function updateMonthChart() {
+        const snap = await getDocs(collection(db, "daily_records"));
+        const labels = [], sysData = [], diaData = [], hrData = [], sugarData = [];
+        const sorted = [];
+        snap.forEach(doc => sorted.push({date: doc.id, ...doc.data()}));
+        sorted.sort((a,b) => a.date.localeCompare(b.date)).slice(-7).forEach(d => {
+            labels.push(d.date.slice(5));
+            const avg = (mode) => {
+                const ms = d.morning?.[mode]||0, es = d.evening?.[mode]||0;
+                return ms && es ? (Number(ms)+Number(es))/2 : (ms || es || 0);
+            };
+            sysData.push(avg('sys')); diaData.push(avg('dia')); hrData.push(avg('hr')); sugarData.push(avg('sugar'));
+        });
+
+        const ctx = document.getElementById('monthChart').getContext('2d');
+        if(monthChart) monthChart.destroy();
+        monthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    { label: '收縮', data: sysData, borderColor: '#B07D7D', tension: 0.3 },
+                    { label: '脈搏', data: hrData, borderColor: '#8DA1B9', tension: 0.3 },
+                    { label: '血糖', data: sugarData, borderColor: '#8BA8A1', tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } }
+        });
+    }
+
+    // 基礎板面功能
     window.setRole = (el, type) => {
         el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red','active-yellow'));
         el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
         if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
     };
-
     window.addPost = async (type) => {
         const role = (type === 'notice') ? curNoticeRole : curNoteRole;
         if(!role) return alert("請選稱謂");
         const input = document.getElementById(type + '-input');
         if(!input.value) return;
-        const newId = Date.now();
-        await setDoc(doc(collection(db, type + "s"), newId.toString()), {
-            id: newId, role, text: input.value, time: new Date().toLocaleString()
-        });
+        await setDoc(doc(collection(db, type + "s"), Date.now().toString()), { role, text: input.value, time: new Date().toLocaleString(), id: Date.now() });
         input.value = "";
     };
-
     function syncBoard(type) {
-        const q = query(collection(db, type + "s"), orderBy("id", "desc"), limit(10));
-        onSnapshot(q, (snap) => {
+        onSnapshot(query(collection(db, type + "s"), orderBy("id", "desc"), limit(10)), (snap) => {
             const html = [];
-            snap.forEach(doc => {
-                const p = doc.data();
-                html.push(`<div class="post-it" style="background:${type==='notice'?'#FFF1F1':'#FFF9E6'}">
-                    <small>${p.role} @ ${p.time}</small><br>${p.text}
-                    <div onclick="deletePost('${type}','${doc.id}')" style="color:red; font-size:0.7rem; cursor:pointer; text-align:right;">刪除</div>
-                </div>`);
-            });
+            snap.forEach(doc => { const p = doc.data(); html.push(`<div class="post-it"><b>${p.role}</b> <small>${p.time}</small><br>${p.text}<br><span onclick="deletePost('${type}','${doc.id}')" style="color:red; font-size:0.7rem; cursor:pointer;">刪除</span></div>`); });
             document.getElementById(type + '-list').innerHTML = html.join('');
         });
     }
-
     window.deletePost = async (type, id) => { if(confirm("刪除？")) await deleteDoc(doc(db, type+"s", id)); };
     window.unlock = (id) => document.getElementById(id).classList.remove('is-locked');
     window.changeDate = (n) => {
@@ -317,25 +350,6 @@
         document.getElementById('date-picker').value = d.toLocaleDateString('en-CA');
         syncData(document.getElementById('date-picker').value);
     };
-
-    function updateChart(d) {
-        const ctx = document.getElementById('trendChart').getContext('2d');
-        if(chartInstance) chartInstance.destroy();
-        const m = d.morning || {};
-        const e = d.evening || {};
-        chartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['早-收縮', '早-舒張', '早-脈搏', '晚-收縮', '晚-舒張', '晚-脈搏', '體溫'],
-                datasets: [{
-                    label: '數值',
-                    data: [m.sys, m.dia, m.hr, e.sys, e.dia, e.hr, d.temp],
-                    backgroundColor: ['#B07D7D','#B07D7D','#8DA1B9','#5D7A99','#5D7A99','#3E5671','#8BA8A1']
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
 </script>
 </body>
 </html>
