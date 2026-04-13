@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 居家照護雲端系統 V16.3 修正版</title>
+<title>奶奶居家照護</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     :root {
@@ -12,95 +12,126 @@
         --morandi-red: #B07D7D;    --morandi-blue: #8DA1B9;
         --morandi-green: #8BA8A1;  --morandi-purple: #9692AF;
         --morandi-yellow: #CDBE9A; --text-main: #1C1C1E;
-        --border-dark: #C7C7CC;
+        --border-dark: #E5E5EA;
+        --rose-red: #D45D79;       /* 舒適玫瑰紅 */
+        --rose-red-dark: #A8445A;
+        /* 軟陰影設計 */
+        --soft-shadow: 0 8px 24px rgba(149, 157, 165, 0.15);
     }
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--ios-bg); margin: 0; padding: 20px; color: var(--text-main); display: flex; justify-content: center; }
     
     #password-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--ios-bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .app-container { width: 100%; max-width: 850px; display: none; }
     
-    .card { background: var(--card-bg); border-radius: 20px; margin-bottom: 25px; border: 2px solid var(--border-dark); padding: 20px; position: relative; }
+    /* 強調圓角設計與軟陰影 */
+    .card { background: var(--card-bg); border-radius: 24px; margin-bottom: 25px; border: 2px solid var(--border-dark); padding: 20px; position: relative; box-shadow: var(--soft-shadow); transition: transform 0.3s; }
     .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; text-align: center; display: block; color: #3A3A3C; }
     .chart-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; text-align: center; display: block; color: #3A3A3C; }
     
     .edit-btn { position: absolute; top: 20px; right: 20px; border: none; background: none; color: #007AFF; font-weight: bold; cursor: pointer; font-size: 0.9rem; z-index: 10; }
     
-    .vital-tabs { display: flex; background: #E3E3E8; border-radius: 12px; padding: 3px; margin-bottom: 15px; }
-    .v-tab { flex: 1; text-align: center; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
-    .v-tab.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .vital-tabs { display: flex; background: #E3E3E8; border-radius: 14px; padding: 4px; margin-bottom: 15px; }
+    .v-tab { flex: 1; text-align: center; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+    .v-tab.active { background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
     
     .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
-    .input-item input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #D1D1D6; font-size: 1rem; outline: none; }
+    .input-item input { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid #D1D1D6; font-size: 1rem; outline: none; transition: 0.3s; }
+    .input-item input:focus { border-color: var(--morandi-blue); box-shadow: 0 0 0 3px rgba(141, 161, 185, 0.2); }
     .input-item label { font-size: 0.8rem; color: #4A4A4A; display: block; margin-bottom: 4px; font-weight: 600; }
     
-    .rehab-group { background: #F9F9FB; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #E5E5EA; }
-    .rehab-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #EFEEF2; }
+    .rehab-group { background: #F9F9FB; padding: 15px; border-radius: 18px; margin-bottom: 10px; border: 1px solid #E5E5EA; transition: 0.3s; }
+    .rehab-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 15px; border-radius: 14px; margin-bottom: 8px; border: 1px solid #EFEEF2; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
     
-    /* 復健編輯視覺修正：排除按鈕 */
-    .rehab-content.is-editing { opacity: 0.6; background-color: #E5E5EA; transition: 0.3s; border-radius: 15px; padding: 5px; }
-    .is-locked { pointer-events: none; }
-    .vitals-locked { pointer-events: none; opacity: 0.6; }
+    /* 編輯狀態邏輯修正：儲存後正常色調 (opacity:1)，編輯時反白反灰 (背景變淺灰) */
+    .locked-area { pointer-events: none; opacity: 1; transition: all 0.3s ease; }
+    .is-editing { opacity: 1 !important; background-color: #EFEFF4 !important; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); border-radius: 20px; padding: 15px; pointer-events: auto !important; transition: all 0.3s ease; border: 2px dashed #D1D1D6; }
 
-    .role-chip { padding: 8px 16px; border-radius: 20px; background: #E3E3E8; font-size: 0.85rem; cursor: pointer; margin: 4px; display: inline-block; border: none; }
-    .role-chip.active-red { background: var(--morandi-red); color: white; }
-    .role-chip.active-yellow { background: #8B7355; color: white; }
+    /* 藥品專用設計 */
+    .med-time-label { font-weight: bold; font-size: 1rem; margin-bottom: 8px; color: var(--text-main); display: block; background: #E3E3E8; padding: 10px; border-radius: 12px; text-align: center; }
+    .med-display-box { background: #F8F8F8; padding: 12px; border-radius: 18px; min-height: 45px; margin-bottom: 15px; border: 1px dashed var(--morandi-purple); font-size: 0.9rem; }
     
-    .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; min-height: 120px; }
-    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 15px; border: 1px solid #E6D9BC; line-height: 1.5; position: relative; }
-    .post-it.pinned { border: 2.5px solid #FF9500; background: #FFF4D1; }
+    .med-time-bar { padding: 14px; background: #E3E3E8; border-radius: 14px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.3s; color: #666; }
+    .med-time-bar.active { background: var(--morandi-purple); color: white; box-shadow: 0 4px 12px rgba(150, 146, 175, 0.4); }
+    .med-options-box { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 5px; }
+
+    .med-tag { display: inline-block; background: #E1E1E6; color: #685A4E; padding: 10px 14px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+    .med-constip { border: 2px solid #FF3B30 !important; color: #FF3B30; }
+    .constip-locked { background: #FFD5D5 !important; color: #999 !important; border-color: #CCC !important; pointer-events: none; }
+    .warning-text { color: #FF3B30; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; display: block; text-align: center; background: #FFF0F0; padding: 8px; border-radius: 12px;}
+
+    .btn-save { width: 100%; padding: 15px; border-radius: 18px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    
+    .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; }
+    .post-it { flex: 0 0 240px; background: #FFF9E6; padding: 15px; border-radius: 18px; border: 1px solid #E6D9BC; line-height: 1.5; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+    .post-it.pinned { border: 2px solid #FF8C00; background: #FFEBCC; box-shadow: 0 6px 16px rgba(255, 140, 0, 0.2); }
+    
+    .role-chip { padding: 8px 16px; border-radius: 20px; background: #E3E3E8; font-size: 0.85rem; cursor: pointer; margin: 4px; display: inline-block; border: none; }
+    .role-chip.active-red { background: var(--morandi-red); color: white; box-shadow: 0 4px 10px rgba(176, 125, 125, 0.4); }
+    .role-chip.active-yellow { background: #8B7355; color: white; box-shadow: 0 4px 10px rgba(139, 115, 85, 0.4); }
 
     .toggle { position: relative; width: 46px; height: 26px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #D1D1D6; transition: .3s; border-radius: 34px; }
-    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; transition: .3s; border-radius: 50%; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #D1D1D6; transition: .3s; border-radius: 34px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     input:checked + .slider { background: #34C759; }
     input:checked + .slider:before { transform: translateX(20px); }
     
-    .btn-save { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    /* 觸覺點擊效果 */
+    button:active, .edit-btn:active, .v-tab:active, .med-time-bar:active, .med-tag:active, .role-chip:active, .toggle:active {
+        transform: scale(0.95) !important;
+        transition: transform 0.1s ease;
+    }
+
     .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
 <div id="password-screen">
-    <h2 style="margin-bottom:20px;">🛡️ 居家照護系統登入🛡️</h2>
-    <input type="password" id="pwd-input" placeholder="請輸入密碼" style="padding:15px; border-radius:12px; border:2px solid #ccc; width:220px; text-align:center;">
-    <button onclick="checkPwd()" style="margin-top:20px; padding:12px 40px; border-radius:12px; background:#1C1C1E; color:white; border:none; font-weight:bold;">驗證</button>
+    <h2 style="margin-bottom:20px;">🛡️ 奶奶居家照護 🛡️</h2>
+    <input type="password" id="pwd-input" placeholder="請輸入密碼" style="padding:15px; border-radius:16px; border:2px solid #ccc; width:220px; text-align:center;">
+    <button onclick="checkPwd()" style="margin-top:20px; padding:12px 40px; border-radius:16px; background:#1C1C1E; color:white; border:none; font-weight:bold;">驗證</button>
 </div>
 
 <div class="app-container" id="main-app">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding: 0 10px;">
-        <button onclick="changeDate(-1)" style="border:none; background:none; font-size:1.5rem;">◀</button>
+        <button onclick="changeDate(-1)" style="border:none; background:none; font-size:1.5rem; cursor: pointer;">◀</button>
         <div style="text-align:center">
             <input type="date" id="date-picker" style="border:none; background:none; font-size:1.2rem; font-weight:800;">
             <div id="weekday-text" style="font-size:0.9rem; color:#8E8E93;"></div>
         </div>
-        <button onclick="changeDate(1)" style="border:none; background:none; font-size:1.5rem;">▶</button>
+        <button onclick="changeDate(1)" style="border:none; background:none; font-size:1.5rem; cursor: pointer;">▶</button>
     </div>
 
-    <div class="card" style="border-color: var(--morandi-red);">
+    <div class="card" style="border: 2px solid var(--morandi-red);">
         <div class="section-title">📢 重要事項公佈欄 📢</div>
         <div class="scroll-container" id="notice-list"></div>
         <div style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
             <div id="notice-roles" style="text-align:center;">
-                <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span><span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span><span class="role-chip" onclick="setRole(this, 'notice')">叔叔</span><span class="role-chip" onclick="setRole(this, 'notice')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'notice')">溱</span><span class="role-chip" onclick="setRole(this, 'notice')">琳</span><span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
+                <span class="role-chip" onclick="setRole(this, 'notice')">媽媽</span>
+                <span class="role-chip" onclick="setRole(this, 'notice')">爸爸</span>
+                <span class="role-chip" onclick="setRole(this, 'notice')">叔叔</span>
+                <span class="role-chip" onclick="setRole(this, 'notice')">嬸嬸</span>
+                <span class="role-chip" onclick="setRole(this, 'notice')">溱</span>
+                <span class="role-chip" onclick="setRole(this, 'notice')">琳</span>
+                <span class="role-chip" onclick="setRole(this, 'notice')">瑄</span>
             </div>
             <div style="display:flex; gap:10px; margin-top:12px;">
-                <input type="text" id="notice-input" placeholder="訊息或連結..." style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
-                <button onclick="addPost('notice')" style="background:var(--morandi-red); color:white; border:none; border-radius:12px; padding:0 20px; font-weight:bold;">發送</button>
+                <input type="text" id="notice-input" placeholder="訊息或連結..." style="flex:1; padding:12px; border-radius:14px; border:1px solid #ddd; outline:none;">
+                <button onclick="addPost('notice')" style="background:var(--morandi-red); color:white; border:none; border-radius:14px; padding:0 20px; font-weight:bold; cursor:pointer;">發送</button>
             </div>
         </div>
     </div>
 
-    <div class="card" style="border-color: var(--morandi-blue);">
+    <div class="card" style="border: 2px solid var(--morandi-blue);">
         <div class="section-title">📊 生理數值 📊</div>
         <button class="edit-btn" onclick="unlock('vitals-box')">✎ 編輯</button>
         <div class="vital-tabs">
             <div class="v-tab active" onclick="switchVitalTab('morning')">早上紀錄</div>
             <div class="v-tab" onclick="switchVitalTab('evening')">晚上紀錄</div>
         </div>
-        <div id="vitals-box" class="vitals-locked">
+        <div id="vitals-box" class="locked-area">
             <div class="input-row">
                 <div class="input-item"><label>收縮壓</label><input type="number" id="v-sys"></div>
                 <div class="input-item"><label>舒張壓</label><input type="number" id="v-dia"></div>
@@ -117,51 +148,94 @@
         <button class="btn-save" style="background:var(--morandi-blue); color:white;" onclick="saveVitals()">✔ 儲存並同步雲端</button>
         
         <div style="margin-top:30px;">
-            <div class="chart-title">📊 當日早晚數值對比 📊</div>
+            <div class="chart-title">當日早晚數值對比</div>
             <canvas id="dayChart" style="max-height:180px;"></canvas>
         </div>
         <div style="margin-top:40px; border-top:1px dashed #ccc; padding-top:20px;">
-            <div class="chart-title">📊 當月數值對比 📊</div>
-            <canvas id="monthChart" style="max-height:180px;"></canvas>
+            <div class="chart-title">每週數值對比</div>
+            <canvas id="weekChart" style="max-height:180px;"></canvas>
         </div>
     </div>
 
-    <div class="card" style="border-color: var(--morandi-green);">
+    <div class="card" style="border: 2px solid var(--morandi-purple);">
+        <div class="section-title">💊 藥品紀錄 💊</div>
+        <span class="warning-text">⚠️ 警示：便祕藥請斟酌使用，一日限兩次</span>
+        
+        <button class="edit-btn" id="meds-edit-btn" onclick="unlockMeds()">✎ 編輯</button>
+        
+        <div id="meds-display-area">
+            <div style="margin-bottom: 15px;">
+                <div class="med-time-label">☀️ 早上用藥</div>
+                <div class="med-display-box" id="med-morning-list"></div>
+            </div>
+            <div>
+                <div class="med-time-label">🌙 晚上用藥</div>
+                <div class="med-display-box" id="med-evening-list"></div>
+            </div>
+        </div>
+
+        <div id="meds-edit-area" class="hidden">
+            <div class="rehab-group" style="padding:15px; background: #FFFFFF; border-radius: 20px; box-shadow: var(--soft-shadow);">
+                <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+                    <div id="tab-m" class="med-time-bar active" onclick="switchMedTab('m')">☀️ 早上</div>
+                    <div id="tab-e" class="med-time-bar" onclick="switchMedTab('e')">🌙 晚上</div>
+                </div>
+
+                <div id="med-options-m" class="med-options-box">
+                    <span class="med-tag" onclick="toggleMed(this)">腦思坦(液體)</span>
+                    <span class="med-tag" onclick="toggleMed(this)">失智症(白長橢圓)</span>
+                    <span class="med-tag" onclick="toggleMed(this)">胃藥(黃圓)</span>
+                    <span class="med-tag" onclick="toggleMed(this)">抗中風藥(粉紅圓)</span>
+                    <span class="med-tag" onclick="toggleMed(this)">穩定心衰竭藥(白圓凸)</span>
+                    <span class="med-tag med-constip" id="constip-btn-m" onclick="toggleConstip(this)">*便祕藥*(白圓)</span>
+                </div>
+
+                <div id="med-options-e" class="med-options-box hidden">
+                    <span class="med-tag med-constip" id="constip-btn-e" onclick="toggleConstip(this)">*便祕藥*(白圓)</span>
+                    <span class="med-tag" onclick="toggleMed(this)">失智症(白長橢圓)</span>
+                    <span class="med-tag" onclick="toggleMed(this)">高血壓藥(小圓粉)</span>
+                    <span class="med-tag" onclick="toggleMed(this)">精神科綜合藥(白橢圓)</span>
+                    <span class="med-tag" onclick="toggleMed(this)">胃藥(黃圓)</span>
+                </div>
+            </div>
+            <button class="btn-save" style="background:var(--morandi-purple); color:white;" onclick="saveMeds()">✔ 儲存用藥紀錄</button>
+        </div>
+    </div>
+
+    <div class="card" style="border: 2px solid var(--morandi-green);">
         <div class="section-title">💪 復健紀錄 💪</div>
         <button class="edit-btn" onclick="unlock('rehab-area')">✎ 編輯</button>
-        <div id="rehab-area" class="is-locked">
-            <div id="rehab-inner-content" class="rehab-content">
-                <div class="rehab-group">
-                    <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌅 早上</div>
-                    <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-m-1"><span class="slider"></span></label></div>
-                    <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m-2"><span class="slider"></span></label></div>
-                    <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-m-3"><span class="slider"></span></label></div>
-                </div>
-                <div class="rehab-group">
-                    <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">☀️ 中午</div>
-                    <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-n-1"><span class="slider"></span></label></div>
-                    <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-n-2"><span class="slider"></span></label></div>
-                    <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-n-3"><span class="slider"></span></label></div>
-                </div>
-                <div class="rehab-group">
-                    <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌙 晚上</div>
-                    <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-e-1"><span class="slider"></span></label></div>
-                    <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e-2"><span class="slider"></span></label></div>
-                    <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-e-3"><span class="slider"></span></label></div>
-                </div>
+        <div id="rehab-area" class="locked-area">
+            <div class="rehab-group">
+                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">☀️ 早上</div>
+                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-m-1"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-m-2"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-m-3"><span class="slider"></span></label></div>
+            </div>
+            <div class="rehab-group">
+                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">☀️ 中午</div>
+                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-n-1"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-n-2"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-n-3"><span class="slider"></span></label></div>
+            </div>
+            <div class="rehab-group">
+                <div style="font-weight:bold; color:var(--morandi-green); margin-bottom:10px; font-size:0.9rem;">🌙 晚上</div>
+                <div class="rehab-item"><span>👄 口腔肌肉</span><label class="toggle"><input type="checkbox" id="r-e-1"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🔄 頭頸運動</span><label class="toggle"><input type="checkbox" id="r-e-2"><span class="slider"></span></label></div>
+                <div class="rehab-item"><span>🦵 關節活動</span><label class="toggle"><input type="checkbox" id="r-e-3"><span class="slider"></span></label></div>
             </div>
             <button class="btn-save" style="background:var(--morandi-green); color:white;" onclick="saveRehab()">✔ 儲存運動進度</button>
         </div>
     </div>
 
-    <div class="card" style="border-color: var(--morandi-yellow);">
+    <div class="card" style="border: 2px solid var(--morandi-yellow);">
         <div class="section-title">📝 備註便利貼 📝</div>
         <div class="scroll-container" id="note-list"></div>
         <div style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
             <div id="note-roles" style="text-align:center;">
                 <span class="role-chip" onclick="setRole(this, 'note')">媽媽</span><span class="role-chip" onclick="setRole(this, 'note')">爸爸</span><span class="role-chip" onclick="setRole(this, 'note')">叔叔</span><span class="role-chip" onclick="setRole(this, 'note')">嬸嬸</span><span class="role-chip" onclick="setRole(this, 'note')">溱</span><span class="role-chip" onclick="setRole(this, 'note')">琳</span><span class="role-chip" onclick="setRole(this, 'note')">瑄</span>
             </div>
-            <textarea id="note-input" placeholder="隨手筆記..." style="width:100%; border-radius:12px; padding:12px; border:1px solid #ddd; margin-top:10px; min-height:80px;"></textarea>
+            <textarea id="note-input" placeholder="隨手筆記..." style="width:100%; border-radius:14px; padding:12px; border:1px solid #ddd; margin-top:10px; min-height:80px; outline:none;"></textarea>
             <button class="btn-save" style="background:#8B7355; color:white;" onclick="addPost('note')">張貼便利貼</button>
         </div>
     </div>
@@ -170,6 +244,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC-9FQXNj-4wxUZdTe1utc52tkOut9VcYQ",
@@ -182,14 +257,17 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    let currentVitalMode = 'morning', curNoticeRole = "", curNoteRole = "", dayChart = null, monthChart = null;
+    let currentVitalMode = 'morning', curNoticeRole = "", curNoteRole = "", dayChart = null, weekChart = null, constipCount = 0;
 
     window.checkPwd = () => {
         if(document.getElementById('pwd-input').value === "8888") {
-            document.getElementById('password-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            init();
+            signInAnonymously(auth).then(() => {
+                document.getElementById('password-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                init();
+            }).catch(e => alert("連線失敗：" + e));
         } else alert("密碼錯誤");
     };
 
@@ -199,9 +277,9 @@
         syncData(today);
         syncBoard('notice');
         syncBoard('note');
-        updateMonthChart();
     }
 
+    // -- 公佈欄與便利貼模組 --
     function syncBoard(type) {
         onSnapshot(collection(db, type + "s"), (snap) => {
             let posts = [];
@@ -213,11 +291,11 @@
             });
             document.getElementById(type + '-list').innerHTML = posts.map(p => `
                 <div class="post-it ${p.pinned ? 'pinned' : ''}">
-                    ${p.pinned ? '<span style="position:absolute; top:5px; right:10px; font-size:0.7rem; color:#FF9500; font-weight:bold;">📌置頂</span>' : ''}
+                    ${p.pinned ? '<span style="position:absolute; top:5px; right:10px; font-size:0.75rem; color:#FF8C00; font-weight:bold;">📌置頂</span>' : ''}
                     <b>${p.role}</b> <small style="color:#888;">${p.time}</small><br>
                     <div style="margin:8px 0;">${p.text}</div>
                     <div style="margin-top:10px; display:flex; gap:15px;">
-                        <span onclick="togglePin('${type}','${p.docId}', ${p.pinned || false})" style="color:#FF9500; font-size:0.75rem; cursor:pointer; font-weight:bold;">${p.pinned ? '取消' : '📌置頂'}</span>
+                        <span onclick="togglePin('${type}','${p.docId}', ${p.pinned || false})" style="color:#FF8C00; font-size:0.75rem; cursor:pointer; font-weight:bold;">${p.pinned ? '取消' : '📌置頂'}</span>
                         <span onclick="deletePost('${type}','${p.docId}')" style="color:red; font-size:0.75rem; cursor:pointer; font-weight:bold;">刪除</span>
                     </div>
                 </div>`).join('') || '<div style="color:#888; padding:20px;">尚無紀錄</div>';
@@ -237,18 +315,80 @@
         input.value = "";
     };
 
+    window.setRole = (el, type) => {
+        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red','active-yellow'));
+        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
+        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
+    };
+
+    // -- 共用解鎖模組 (編輯反白反灰/儲存後恢復正常) --
     window.unlock = (id) => {
-        if(id === 'rehab-area') { 
-            document.getElementById(id).classList.remove('is-locked'); 
-            document.getElementById('rehab-inner-content').classList.add('is-editing'); 
+        document.getElementById(id).classList.add('is-editing');
+        document.getElementById(id).classList.remove('locked-area');
+    };
+    
+    window.unlockMeds = () => {
+        document.getElementById('meds-display-area').classList.add('hidden');
+        document.getElementById('meds-edit-area').classList.remove('hidden');
+        document.getElementById('meds-edit-btn').classList.add('hidden');
+    };
+
+    // -- 藥品編輯邏輯 --
+    window.switchMedTab = (time) => {
+        document.querySelectorAll('.med-time-bar').forEach(el => el.classList.remove('active'));
+        document.getElementById(`tab-${time}`).classList.add('active');
+        document.querySelectorAll('.med-options-box').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`med-options-${time}`).classList.remove('hidden');
+    };
+
+    window.toggleMed = (el) => {
+        if(el.classList.contains('active-med')) {
+            el.classList.remove('active-med');
+            el.style.backgroundColor = '#E1E1E6';
+            el.style.color = '#685A4E';
         } else {
-            document.getElementById(id).classList.remove('vitals-locked');
+            el.classList.add('active-med');
+            el.style.backgroundColor = '#8BA8A1';
+            el.style.color = 'white';
         }
     };
+
+    window.toggleConstip = (el) => {
+        if (el.classList.contains('active-med')) {
+            el.classList.remove('active-med', 'active-red');
+            el.style.backgroundColor = '#E1E1E6';
+            el.style.color = '#685A4E';
+            constipCount--;
+        } else {
+            if (constipCount >= 2) {
+                alert("⚠️ 警告：便祕藥已達今日上限 2 次，無法再新增！");
+                return;
+            }
+            el.classList.add('active-med', 'active-red');
+            el.style.backgroundColor = '#FF3B30';
+            el.style.color = 'white';
+            constipCount++;
+        }
+        updateConstipUI();
+    };
+
+    function updateConstipUI() {
+        ['constip-btn-m', 'constip-btn-e'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (constipCount >= 2 && !btn.classList.contains('active-med')) {
+                btn.classList.add('constip-locked');
+                btn.innerText = "*便祕藥* (次數滿)";
+            } else {
+                btn.classList.remove('constip-locked');
+                btn.innerText = "*便祕藥*(白圓)";
+            }
+        });
+    }
 
     async function syncData(date) {
         onSnapshot(doc(db, "daily_records", date), (snap) => {
             const d = snap.data() || {};
+            // 讀取生理數值
             const modeData = d[currentVitalMode] || {};
             document.getElementById('v-sys').value = modeData.sys || "";
             document.getElementById('v-dia').value = modeData.dia || "";
@@ -258,67 +398,69 @@
             document.getElementById('v-water').value = d.water || "";
             document.getElementById('v-stool').value = d.stool || "";
             document.getElementById('v-urine').value = d.urine || "";
-            ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) document.getElementById(`r-${p}-${i}`).checked = d[`r${p}${i}`] || false; });
+            
+            // 讀取復健 (包含中午時段)
+            ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) {
+                const el = document.getElementById(`r-${p}-${i}`);
+                if(el) el.checked = d[`r${p}${i}`] || false;
+            }});
+
+            // 讀取藥品
+            const meds_m = d.meds_m || [];
+            const meds_e = d.meds_e || [];
+            
+            // 渲染顯示區域
+            document.getElementById('med-morning-list').innerHTML = meds_m.map(m => {
+                const isConstip = m.includes('便祕藥');
+                return `<span class="med-tag" style="background:${isConstip ? '#FF3B30' : '#8BA8A1'}; color:white;">${m}</span>`;
+            }).join('') || '<span style="color:#999;">尚未記錄用藥</span>';
+            
+            document.getElementById('med-evening-list').innerHTML = meds_e.map(m => {
+                const isConstip = m.includes('便祕藥');
+                return `<span class="med-tag" style="background:${isConstip ? '#FF3B30' : '#8BA8A1'}; color:white;">${m}</span>`;
+            }).join('') || '<span style="color:#999;">尚未記錄用藥</span>';
+
+            // 還原編輯區塊一般藥品狀態
+            document.querySelectorAll('#med-options-m .med-tag:not(.med-constip)').forEach(el => {
+                if(meds_m.includes(el.innerText)) { el.classList.add('active-med'); el.style.backgroundColor = '#8BA8A1'; el.style.color = 'white'; }
+                else { el.classList.remove('active-med'); el.style.backgroundColor = '#E1E1E6'; el.style.color = '#685A4E'; }
+            });
+            document.querySelectorAll('#med-options-e .med-tag:not(.med-constip)').forEach(el => {
+                if(meds_e.includes(el.innerText)) { el.classList.add('active-med'); el.style.backgroundColor = '#8BA8A1'; el.style.color = 'white'; }
+                else { el.classList.remove('active-med'); el.style.backgroundColor = '#E1E1E6'; el.style.color = '#685A4E'; }
+            });
+
+            // 還原便祕藥狀態與計數
+            let count = 0;
+            const btnM = document.getElementById('constip-btn-m');
+            if(meds_m.includes(btnM.innerText) || meds_m.includes('*便祕藥*(白圓)')) {
+                btnM.classList.add('active-med', 'active-red'); btnM.style.backgroundColor = '#FF3B30'; btnM.style.color = 'white'; count++;
+            } else { btnM.classList.remove('active-med', 'active-red'); btnM.style.backgroundColor = '#E1E1E6'; btnM.style.color = '#685A4E'; }
+
+            const btnE = document.getElementById('constip-btn-e');
+            if(meds_e.includes(btnE.innerText) || meds_e.includes('*便祕藥*(白圓)')) {
+                btnE.classList.add('active-med', 'active-red'); btnE.style.backgroundColor = '#FF3B30'; btnE.style.color = 'white'; count++;
+            } else { btnE.classList.remove('active-med', 'active-red'); btnE.style.backgroundColor = '#E1E1E6'; btnE.style.color = '#685A4E'; }
+            
+            constipCount = count;
+            updateConstipUI();
+            
             updateDayChart(d);
+            updateWeekChart(date);
+            
             const dt = new Date(date);
             const weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
             document.getElementById('weekday-text').innerText = weeks[dt.getDay()];
         });
     }
 
+    // -- 儲存功能 --
     window.saveVitals = async () => {
         const updateObj = { [currentVitalMode]: { sys: document.getElementById('v-sys').value, dia: document.getElementById('v-dia').value, hr: document.getElementById('v-hr').value, sugar: document.getElementById('v-sugar').value }, temp: document.getElementById('v-temp').value, water: document.getElementById('v-water').value, stool: document.getElementById('v-stool').value, urine: document.getElementById('v-urine').value };
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), updateObj, { merge: true });
-        document.getElementById('vitals-box').classList.add('vitals-locked');
-        updateMonthChart();
+        document.getElementById('vitals-box').classList.add('locked-area');
+        document.getElementById('vitals-box').classList.remove('is-editing');
     };
 
     window.saveRehab = async () => {
-        const obj = {}; ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) obj[`r${p}${i}`] = document.getElementById(`r-${p}-${i}`).checked; });
-        await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), obj, { merge: true });
-        document.getElementById('rehab-area').classList.add('is-locked'); 
-        document.getElementById('rehab-inner-content').classList.remove('is-editing');
-    };
-
-    window.setRole = (el, type) => {
-        el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active-red','active-yellow'));
-        el.classList.add(type === 'notice' ? 'active-red' : 'active-yellow');
-        if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
-    };
-
-    window.changeDate = (n) => {
-        let d = new Date(document.getElementById('date-picker').value);
-        d.setDate(d.getDate() + n);
-        document.getElementById('date-picker').value = d.toLocaleDateString('en-CA');
-        syncData(document.getElementById('date-picker').value);
-    };
-
-    window.switchVitalTab = (mode) => {
-        document.querySelectorAll('.v-tab').forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active'); currentVitalMode = mode;
-        syncData(document.getElementById('date-picker').value);
-    };
-
-    function updateDayChart(d) {
-        const ctx = document.getElementById('dayChart').getContext('2d');
-        if(dayChart) dayChart.destroy();
-        const m = d.morning || {}, e = d.evening || {};
-        dayChart = new Chart(ctx, { type: 'bar', data: { labels: ['收縮壓', '舒張壓', '脈搏', '血糖'], datasets: [{ label: '早上', data: [m.sys, m.dia, m.hr, m.sugar], backgroundColor: '#8DA1B9' }, { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar], backgroundColor: '#5D7A99' }] }, options: { responsive: true, maintainAspectRatio: false } });
-    }
-
-    async function updateMonthChart() {
-        const snap = await getDocs(collection(db, "daily_records"));
-        const labels = [], sysData = [], hrData = [], sugarData = [], sorted = [];
-        snap.forEach(doc => sorted.push({date: doc.id, ...doc.data()}));
-        sorted.sort((a,b) => a.date.localeCompare(b.date)).slice(-7).forEach(d => {
-            labels.push(d.date.slice(5));
-            const avg = (f) => { const ms = d.morning?.[f]||0, es = d.evening?.[f]||0; return ms && es ? (Number(ms)+Number(es))/2 : (ms || es || 0); };
-            sysData.push(avg('sys')); hrData.push(avg('hr')); sugarData.push(avg('sugar'));
-        });
-        const ctx = document.getElementById('monthChart').getContext('2d');
-        if(monthChart) monthChart.destroy();
-        monthChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: '收縮', data: sysData, borderColor: '#B07D7D' }, { label: '脈搏', data: hrData, borderColor: '#8DA1B9' }, { label: '血糖', data: sugarData, borderColor: '#8BA8A1' }] }, options: { responsive: true, maintainAspectRatio: false } });
-    }
-</script>
-</body>
-</html>
+        const obj = {}; ['m
