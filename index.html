@@ -399,7 +399,7 @@
             document.getElementById('v-stool').value = d.stool || "";
             document.getElementById('v-urine').value = d.urine || "";
             
-            // 讀取復健 (包含中午時段)
+            // 讀取復健
             ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) {
                 const el = document.getElementById(`r-${p}-${i}`);
                 if(el) el.checked = d[`r${p}${i}`] || false;
@@ -454,7 +454,6 @@
         });
     }
 
-    // -- 儲存功能 --
     window.saveVitals = async () => {
         const updateObj = { [currentVitalMode]: { sys: document.getElementById('v-sys').value, dia: document.getElementById('v-dia').value, hr: document.getElementById('v-hr').value, sugar: document.getElementById('v-sugar').value }, temp: document.getElementById('v-temp').value, water: document.getElementById('v-water').value, stool: document.getElementById('v-stool').value, urine: document.getElementById('v-urine').value };
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), updateObj, { merge: true });
@@ -476,7 +475,6 @@
 
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), { meds_m, meds_e, constip_count: constipCount }, { merge: true });
         
-        // 恢復顯示狀態
         document.getElementById('meds-edit-area').classList.add('hidden');
         document.getElementById('meds-display-area').classList.remove('hidden');
         document.getElementById('meds-edit-btn').classList.remove('hidden');
@@ -495,7 +493,7 @@
         syncData(document.getElementById('date-picker').value);
     };
 
-    // 自訂 Day Chart 基準線 Plugin (解決只畫特定區塊問題，放在最上層)
+    // 自訂 Day Chart 基準線 Plugin
     const dayBaselinePlugin = {
         id: 'dayBaseline',
         afterDatasetsDraw: (chart) => {
@@ -506,7 +504,7 @@
             const endX = x.getPixelForTick(1) + catW/2;
             
             ctx.save();
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 1;
             ctx.setLineDash([5,5]);
             
             const drawLine = (val, color) => {
@@ -572,7 +570,8 @@
     }
 
     async function updateWeekChart(selectedDate) {
-        const curr = new Date(selectedDate);
+        const [yyyy_str, mm_str, dd_str] = selectedDate.split('-');
+        const curr = new Date(yyyy_str, mm_str - 1, dd_str);
         const day = curr.getDay();
         const diff = curr.getDate() - day + (day === 0 ? -6 : 1);
         const monday = new Date(curr.setDate(diff));
@@ -582,10 +581,14 @@
         
         for(let i=0; i<7; i++) {
             const d = new Date(monday); d.setDate(monday.getDate() + i);
-            labels.push(weekNames[i]); dates.push(d.toLocaleDateString('en-CA'));
+            labels.push(weekNames[i]); 
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            dates.push(`${yyyy}-${mm}-${dd}`);
         }
 
-        const sysData = [], sugarData = [];
+        const sysData = [], diaData = [], sugarData = [];
         const snap = await getDocs(collection(db, "daily_records"));
         const dataMap = {}; snap.forEach(doc => dataMap[doc.id] = doc.data());
 
@@ -593,6 +596,7 @@
             const d = dataMap[dStr];
             const avg = (f) => { const ms = d?.morning?.[f]||0, es = d?.evening?.[f]||0; return ms && es ? (Number(ms)+Number(es))/2 : (ms || es || null); };
             sysData.push(avg('sys'));
+            diaData.push(avg('dia')); // 新增舒張壓進入趨勢圖
             sugarData.push(avg('sugar'));
         });
 
@@ -605,8 +609,9 @@
                 datasets: [
                     { label: '收縮壓基準', data: Array(7).fill(140), borderColor: '#8B0000', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false },
                     { label: '舒張壓基準', data: Array(7).fill(90), borderColor: '#4A0000', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false },
-                    { label: '收縮壓', data: sysData, borderColor: '#B07D7D', tension: 0.1 }, 
-                    { label: '血糖', data: sugarData, borderColor: 'var(--rose-red)', showLine: false, pointStyle: 'line', pointRadius: 15, borderWidth: 4 }
+                    { label: '收縮壓', data: sysData, borderColor: '#B07D7D', tension: 0.1, spanGaps: true }, 
+                    { label: '舒張壓', data: diaData, borderColor: '#8DA1B9', tension: 0.1, spanGaps: true }, // 新增的舒張壓線條
+                    { label: '血糖', data: sugarData, borderColor: 'var(--rose-red)', showLine: false, pointStyle: 'line', pointRadius: 15, borderWidth: 4, spanGaps: true }
                 ] 
             }, 
             options: { 
