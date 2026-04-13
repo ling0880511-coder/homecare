@@ -321,7 +321,7 @@
         if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
     };
 
-    // -- 共用解鎖模組 (編輯反白反灰/儲存後恢復正常) --
+    // -- 共用解鎖模組 (編輯反白/儲存後恢復) --
     window.unlock = (id) => {
         document.getElementById(id).classList.add('is-editing');
         document.getElementById(id).classList.remove('locked-area');
@@ -377,7 +377,7 @@
             const btn = document.getElementById(id);
             if (constipCount >= 2 && !btn.classList.contains('active-med')) {
                 btn.classList.add('constip-locked');
-                btn.innerText = "*便祕藥* (次數滿)";
+                btn.innerText = "*便祕藥* (次數已滿)";
             } else {
                 btn.classList.remove('constip-locked');
                 btn.innerText = "*便祕藥*(白圓)";
@@ -463,4 +463,102 @@
     };
 
     window.saveRehab = async () => {
-        const obj = {}; ['m
+        const obj = {}; ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) obj[`r${p}${i}`] = document.getElementById(`r-${p}-${i}`).checked; });
+        await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), obj, { merge: true });
+        document.getElementById('rehab-area').classList.add('locked-area'); 
+        document.getElementById('rehab-area').classList.remove('is-editing');
+    };
+
+    window.saveMeds = async () => {
+        const getActive = (selector) => Array.from(document.querySelectorAll(selector)).filter(el => el.classList.contains('active-med')).map(el => el.innerText);
+        const meds_m = getActive('#med-options-m .med-tag');
+        const meds_e = getActive('#med-options-e .med-tag');
+
+        await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), { meds_m, meds_e, constip_count: constipCount }, { merge: true });
+        
+        // 恢復顯示狀態
+        document.getElementById('meds-edit-area').classList.add('hidden');
+        document.getElementById('meds-display-area').classList.remove('hidden');
+        document.getElementById('meds-edit-btn').classList.remove('hidden');
+    };
+
+    window.switchVitalTab = (mode) => {
+        document.querySelectorAll('.v-tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active'); currentVitalMode = mode;
+        syncData(document.getElementById('date-picker').value);
+    };
+
+    window.changeDate = (n) => {
+        let d = new Date(document.getElementById('date-picker').value);
+        d.setDate(d.getDate() + n);
+        document.getElementById('date-picker').value = d.toLocaleDateString('en-CA');
+        syncData(document.getElementById('date-picker').value);
+    };
+
+    // -- 圖表模組 --
+    function updateDayChart(d) {
+        const ctx = document.getElementById('dayChart').getContext('2d');
+        if(dayChart) dayChart.destroy();
+        const m = d.morning || {}, e = d.evening || {};
+        
+        dayChart = new Chart(ctx, { 
+            type: 'bar', 
+            data: { 
+                labels: ['收縮壓', '舒張壓', '脈搏', '血糖'], 
+                datasets: [
+                    // 基準線限定在 收縮壓與舒張壓 區域內
+                    { label: '收縮壓基準', data: [140, 140, null, null], type: 'line', borderColor: '#8B0000', borderWidth: 3, pointRadius: 0, fill: false, order: 0 },
+                    { label: '舒張壓基準', data: [90, 90, null, null], type: 'line', borderColor: '#4A0000', borderWidth: 3, pointRadius: 0, fill: false, order: 0 },
+                    // 長條圖血糖顏色改為玫瑰紅 var(--rose-red)
+                    { label: '早上', data: [m.sys, m.dia, m.hr, m.sugar], backgroundColor: ['#8DA1B9', '#8DA1B9', '#8DA1B9', 'var(--rose-red)'], order: 1 }, 
+                    { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar], backgroundColor: ['#5D7A99', '#5D7A99', '#5D7A99', 'var(--rose-red-dark)'], order: 1 }
+                ] 
+            }, 
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { filter: item => !item.text.includes('基準') } } } } 
+        });
+    }
+
+    async function updateWeekChart(selectedDate) {
+        const curr = new Date(selectedDate);
+        const day = curr.getDay();
+        const diff = curr.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(curr.setDate(diff));
+
+        const labels = [], dates = [];
+        const weekNames = ["一","二","三","四","五","六","日"];
+        
+        for(let i=0; i<7; i++) {
+            const d = new Date(monday); d.setDate(monday.getDate() + i);
+            labels.push(weekNames[i]); dates.push(d.toLocaleDateString('en-CA'));
+        }
+
+        const sysData = [], sugarData = [];
+        const snap = await getDocs(collection(db, "daily_records"));
+        const dataMap = {}; snap.forEach(doc => dataMap[doc.id] = doc.data());
+
+        dates.forEach(dStr => {
+            const d = dataMap[dStr];
+            const avg = (f) => { const ms = d?.morning?.[f]||0, es = d?.evening?.[f]||0; return ms && es ? (Number(ms)+Number(es))/2 : (ms || es || null); };
+            sysData.push(avg('sys'));
+            sugarData.push(avg('sugar'));
+        });
+
+        const ctx = document.getElementById('weekChart').getContext('2d');
+        if(weekChart) weekChart.destroy();
+        weekChart = new Chart(ctx, { 
+            type: 'line', 
+            data: { 
+                labels, 
+                datasets: [
+                    { label: '收縮壓基準', data: Array(7).fill(140), borderColor: '#8B0000', borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false },
+                    { label: '舒張壓基準', data: Array(7).fill(90), borderColor: '#4A0000', borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false },
+                    { label: '收縮壓', data: sysData, borderColor: '#B07D7D', tension: 0.1 }, 
+                    { label: '血糖', data: sugarData, borderColor: 'var(--rose-red)', showLine: false, pointStyle: 'line', pointRadius: 15, borderWidth: 4 }
+                ] 
+            }, 
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { filter: item => !item.text.includes('基準') } } } } 
+        });
+    }
+</script>
+</body>
+</html>
