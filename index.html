@@ -176,9 +176,9 @@
 
         <div id="meds-edit-area" class="hidden">
             <div class="rehab-group" style="padding:15px; background: #FFFFFF; border-radius: 20px; box-shadow: var(--soft-shadow);">
-                <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
-                    <div id="tab-m" class="med-time-bar active" onclick="switchMedTab('m')">☀️ 早上</div>
-                    <div id="tab-e" class="med-time-bar" onclick="switchMedTab('e')">🌙 晚上</div>
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div id="tab-m" class="med-time-bar active" style="flex:1;" onclick="switchMedTab('m')">☀️ 早上</div>
+                    <div id="tab-e" class="med-time-bar" style="flex:1;" onclick="switchMedTab('e')">🌙 晚上</div>
                 </div>
 
                 <div id="med-options-m" class="med-options-box">
@@ -495,6 +495,35 @@
         syncData(document.getElementById('date-picker').value);
     };
 
+    // 自訂 Day Chart 基準線 Plugin (解決只畫特定區塊問題，放在最上層)
+    const dayBaselinePlugin = {
+        id: 'dayBaseline',
+        afterDatasetsDraw: (chart) => {
+            const {ctx, chartArea: {left, right}, scales: {x, y}} = chart;
+            if(!x || !y) return;
+            
+            const catW = x.getPixelForTick(1) - x.getPixelForTick(0);
+            const endX = x.getPixelForTick(1) + catW/2;
+            
+            ctx.save();
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5,5]);
+            
+            const drawLine = (val, color) => {
+                const yPos = y.getPixelForValue(val);
+                ctx.strokeStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(left, yPos);
+                ctx.lineTo(endX, yPos);
+                ctx.stroke();
+            };
+            
+            drawLine(140, '#8B0000');
+            drawLine(90, '#4A0000');
+            ctx.restore();
+        }
+    };
+
     // -- 圖表模組 --
     function updateDayChart(d) {
         const ctx = document.getElementById('dayChart').getContext('2d');
@@ -506,15 +535,39 @@
             data: { 
                 labels: ['收縮壓', '舒張壓', '脈搏', '血糖'], 
                 datasets: [
-                    // 基準線限定在 收縮壓與舒張壓 區域內
-                    { label: '收縮壓基準', data: [140, 140, null, null], type: 'line', borderColor: '#8B0000', borderWidth: 3, pointRadius: 0, fill: false, order: 0 },
-                    { label: '舒張壓基準', data: [90, 90, null, null], type: 'line', borderColor: '#4A0000', borderWidth: 3, pointRadius: 0, fill: false, order: 0 },
-                    // 長條圖血糖顏色改為玫瑰紅 var(--rose-red)
                     { label: '早上', data: [m.sys, m.dia, m.hr, m.sugar], backgroundColor: ['#8DA1B9', '#8DA1B9', '#8DA1B9', 'var(--rose-red)'], order: 1 }, 
                     { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar], backgroundColor: ['#5D7A99', '#5D7A99', '#5D7A99', 'var(--rose-red-dark)'], order: 1 }
                 ] 
             }, 
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { filter: item => !item.text.includes('基準') } } } } 
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { display: true } },
+                scales: {
+                    y: {
+                        min: 60,
+                        max: 160,
+                        beginAtZero: false,
+                        afterBuildTicks: axis => {
+                            let ticks = axis.ticks.map(t => t.value);
+                            if(!ticks.includes(90)) axis.ticks.push({value: 90});
+                            if(!ticks.includes(140)) axis.ticks.push({value: 140});
+                            axis.ticks.sort((a,b) => a.value - b.value);
+                        },
+                        ticks: {
+                            color: (ctx) => {
+                                if(ctx.tick && ctx.tick.value === 140) return '#8B0000';
+                                if(ctx.tick && ctx.tick.value === 90) return '#4A0000';
+                                return '#666';
+                            },
+                            font: (ctx) => {
+                                if(ctx.tick && (ctx.tick.value === 140 || ctx.tick.value === 90)) return {weight: 'bold', size: 12};
+                                return {size: 10};
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [dayBaselinePlugin]
         });
     }
 
@@ -550,13 +603,40 @@
             data: { 
                 labels, 
                 datasets: [
-                    { label: '收縮壓基準', data: Array(7).fill(140), borderColor: '#8B0000', borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false },
-                    { label: '舒張壓基準', data: Array(7).fill(90), borderColor: '#4A0000', borderDash: [5,5], borderWidth: 2, pointRadius: 0, fill: false },
+                    { label: '收縮壓基準', data: Array(7).fill(140), borderColor: '#8B0000', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false },
+                    { label: '舒張壓基準', data: Array(7).fill(90), borderColor: '#4A0000', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false },
                     { label: '收縮壓', data: sysData, borderColor: '#B07D7D', tension: 0.1 }, 
                     { label: '血糖', data: sugarData, borderColor: 'var(--rose-red)', showLine: false, pointStyle: 'line', pointRadius: 15, borderWidth: 4 }
                 ] 
             }, 
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { filter: item => !item.text.includes('基準') } } } } 
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { labels: { filter: item => !item.text.includes('基準') } } },
+                scales: {
+                    y: {
+                        min: 60,
+                        max: 160,
+                        beginAtZero: false,
+                        afterBuildTicks: axis => {
+                            let ticks = axis.ticks.map(t => t.value);
+                            if(!ticks.includes(90)) axis.ticks.push({value: 90});
+                            if(!ticks.includes(140)) axis.ticks.push({value: 140});
+                            axis.ticks.sort((a,b) => a.value - b.value);
+                        },
+                        ticks: {
+                            color: (ctx) => {
+                                if(ctx.tick && ctx.tick.value === 140) return '#8B0000';
+                                if(ctx.tick && ctx.tick.value === 90) return '#4A0000';
+                                return '#666';
+                            },
+                            font: (ctx) => {
+                                if(ctx.tick && (ctx.tick.value === 140 || ctx.tick.value === 90)) return {weight: 'bold', size: 12};
+                                return {size: 10};
+                            }
+                        }
+                    }
+                }
+            } 
         });
     }
 </script>
