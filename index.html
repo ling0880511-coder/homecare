@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>奶奶居家照護</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -19,10 +19,11 @@
         --soft-shadow: 0 8px 24px rgba(149, 157, 165, 0.15);
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--ios-bg); margin: 0; padding: 20px; color: var(--text-main); display: flex; justify-content: center; }
+    body { background-color: var(--ios-bg); margin: 0; padding: 15px; color: var(--text-main); display: flex; justify-content: center; }
     
     #password-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--ios-bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .app-container { width: 100%; max-width: 850px; display: none; }
+    /* 鎖定手機版面寬度 */
+    .app-container { width: 100%; max-width: 500px; display: none; margin: 0 auto; }
     
     /* 強調圓角設計與軟陰影 */
     .card { background: var(--card-bg); border-radius: 24px; margin-bottom: 25px; border: 2px solid var(--border-dark); padding: 20px; position: relative; box-shadow: var(--soft-shadow); transition: transform 0.3s; }
@@ -35,7 +36,7 @@
     .v-tab { flex: 1; text-align: center; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
     .v-tab.active { background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
     
-    .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
+    .input-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
     .input-item input { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid #D1D1D6; font-size: 1rem; outline: none; transition: 0.3s; }
     .input-item input:focus { border-color: var(--morandi-blue); box-shadow: 0 0 0 3px rgba(141, 161, 185, 0.2); }
     .input-item label { font-size: 0.8rem; color: #4A4A4A; display: block; margin-bottom: 4px; font-weight: 600; }
@@ -51,7 +52,7 @@
     .med-time-label { font-weight: bold; font-size: 1rem; margin-bottom: 8px; color: var(--text-main); display: block; background: #E3E3E8; padding: 10px; border-radius: 12px; text-align: center; }
     .med-display-box { background: #F8F8F8; padding: 12px; border-radius: 18px; min-height: 45px; margin-bottom: 15px; border: 1px dashed var(--morandi-purple); font-size: 0.9rem; }
     
-    .med-time-bar { padding: 14px; background: #E3E3E8; border-radius: 14px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.3s; color: #666; }
+    .med-time-bar { padding: 14px 10px; background: #E3E3E8; border-radius: 14px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.3s; color: #666; font-size: 0.9rem;}
     .med-time-bar.active { background: var(--morandi-purple); color: white; box-shadow: 0 4px 12px rgba(150, 146, 175, 0.4); }
     .med-options-box { display: flex; flex-wrap: wrap; gap: 12px; padding: 15px 5px; }
 
@@ -143,9 +144,9 @@
                 <div class="input-item"><label>脈搏</label><input type="number" id="v-hr"></div>
                 <div class="input-item"><label>血糖</label><input type="number" id="v-sugar"></div>
                 <div class="input-item"><label>血氧</label><input type="number" id="v-spo2"></div>
+                <div class="input-item"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
             </div>
             <div class="input-row">
-                <div class="input-item"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
                 <div class="input-item"><label>喝水量</label><input type="number" id="v-water"></div>
                 <div class="input-item"><label>大號</label><input type="number" id="v-stool"></div>
                 <div class="input-item"><label>小號</label><input type="number" id="v-urine"></div>
@@ -174,6 +175,10 @@
                 <div class="med-time-label">☀️ 早上用藥</div>
                 <div class="med-display-box" id="med-morning-list"></div>
             </div>
+            <div style="margin-bottom: 15px;">
+                <div class="med-time-label">☀️ 中午用藥</div>
+                <div class="med-display-box" id="med-noon-list"></div>
+            </div>
             <div>
                 <div class="med-time-label">🌙 晚上用藥</div>
                 <div class="med-display-box" id="med-evening-list"></div>
@@ -184,6 +189,7 @@
             <div class="rehab-group" style="padding:15px; background: #FFFFFF; border-radius: 20px; box-shadow: var(--soft-shadow);">
                 <div style="display:flex; gap:10px; margin-bottom:15px;">
                     <div id="tab-m" class="med-time-bar active" style="flex:1;" onclick="switchMedTab('m')">☀️ 早上</div>
+                    <div id="tab-n" class="med-time-bar" style="flex:1;" onclick="switchMedTab('n')">☀️ 中午</div>          
                     <div id="tab-e" class="med-time-bar" style="flex:1;" onclick="switchMedTab('e')">🌙 晚上</div>
                 </div>
 
@@ -217,6 +223,34 @@
                         <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
                         <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
                         <span class="med-text">*便祕藥*(白圓)</span>
+                    </span>
+
+                </div>
+                <div id="med-options-n" class="med-options-box hidden">
+                    <span class="med-tag med-constip" id="constip-btn-n" data-med="*便祕藥*(白圓)" onclick="toggleConstip(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">*便祕藥*(白圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="失智症(白長橢圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">失智症(白長橢圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="高血壓藥(小圓粉)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">高血壓藥(小圓粉)</span>
+                    </span>
+                    <span class="med-tag" data-med="精神科綜合藥(白橢圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">精神科綜合藥(白橢圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="胃藥(黃圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">胃藥(黃圓)</span>
                     </span>
                 </div>
 
@@ -253,6 +287,7 @@
                     <button onclick="addCustomMed()" style="background:var(--morandi-purple); color:white; border:none; border-radius:12px; padding:0 20px; font-weight:bold; cursor:pointer;">新增</button>
                 </div>
             </div>
+
             <button class="btn-save" style="background:var(--morandi-purple); color:white;" onclick="saveMeds()">✔ 儲存用藥紀錄</button>
         </div>
     </div>
@@ -475,7 +510,11 @@
         const input = document.getElementById('custom-med-input');
         const val = input.value.trim();
         if(!val) return;
-        const time = document.getElementById('tab-m').classList.contains('active') ? 'm' : 'e';
+        
+        let time = 'm';
+        if (document.getElementById('tab-n').classList.contains('active')) time = 'n';
+        if (document.getElementById('tab-e').classList.contains('active')) time = 'e';
+        
         const container = document.getElementById(`med-options-${time}`);
         
         let exists = false;
@@ -520,7 +559,9 @@
             span.setAttribute('data-med', medName);
             if (medName.includes('便祕藥')) {
                 span.classList.add('med-constip');
-                span.id = containerId === 'med-options-m' ? 'constip-btn-m' : 'constip-btn-e';
+                if(containerId === 'med-options-m') span.id = 'constip-btn-m';
+                if(containerId === 'med-options-n') span.id = 'constip-btn-n';
+                if(containerId === 'med-options-e') span.id = 'constip-btn-e';
                 span.onclick = function() { toggleConstip(this); };
             } else {
                 span.onclick = function() { toggleMed(this); };
@@ -535,7 +576,7 @@
     }
 
     function updateConstipUI() {
-        ['constip-btn-m', 'constip-btn-e'].forEach(id => {
+        ['constip-btn-m', 'constip-btn-n', 'constip-btn-e'].forEach(id => {
             const btn = document.getElementById(id);
             if (btn && constipCount >= 2 && !btn.classList.contains('active-med')) {
                 btn.classList.add('constip-locked');
@@ -572,10 +613,12 @@
 
             // 讀取藥品
             const meds_m = d.meds_m || [];
+            const meds_n = d.meds_n || [];
             const meds_e = d.meds_e || [];
             
             // 確保自訂的藥品 Tag 存在於編輯區
             meds_m.forEach(m => ensureMedTagExists('med-options-m', m));
+            meds_n.forEach(m => ensureMedTagExists('med-options-n', m));
             meds_e.forEach(m => ensureMedTagExists('med-options-e', m));
             
             // 渲染顯示區域
@@ -584,6 +627,11 @@
                 return `<span class="med-tag" style="background:${isConstip ? '#FF3B30' : '#8BA8A1'}; color:white;">${m}</span>`;
             }).join('') || '<span style="color:#999;">尚未記錄用藥</span>';
             
+            document.getElementById('med-noon-list').innerHTML = meds_n.map(m => {
+                const isConstip = m.includes('便祕藥');
+                return `<span class="med-tag" style="background:${isConstip ? '#FF3B30' : '#8BA8A1'}; color:white;">${m}</span>`;
+            }).join('') || '<span style="color:#999;">尚未記錄用藥</span>';
+
             document.getElementById('med-evening-list').innerHTML = meds_e.map(m => {
                 const isConstip = m.includes('便祕藥');
                 return `<span class="med-tag" style="background:${isConstip ? '#FF3B30' : '#8BA8A1'}; color:white;">${m}</span>`;
@@ -592,6 +640,10 @@
             // 還原編輯區塊一般藥品狀態
             document.querySelectorAll('#med-options-m .med-tag:not(.med-constip)').forEach(el => {
                 if(meds_m.includes(el.getAttribute('data-med'))) { el.classList.add('active-med'); el.style.backgroundColor = '#8BA8A1'; el.style.color = 'white'; }
+                else { el.classList.remove('active-med'); el.style.backgroundColor = '#E1E1E6'; el.style.color = '#685A4E'; }
+            });
+            document.querySelectorAll('#med-options-n .med-tag:not(.med-constip)').forEach(el => {
+                if(meds_n.includes(el.getAttribute('data-med'))) { el.classList.add('active-med'); el.style.backgroundColor = '#8BA8A1'; el.style.color = 'white'; }
                 else { el.classList.remove('active-med'); el.style.backgroundColor = '#E1E1E6'; el.style.color = '#685A4E'; }
             });
             document.querySelectorAll('#med-options-e .med-tag:not(.med-constip)').forEach(el => {
@@ -606,6 +658,13 @@
                 if(meds_m.includes(btnM.getAttribute('data-med')) || meds_m.includes('*便祕藥*(白圓)')) {
                     btnM.classList.add('active-med', 'active-red'); btnM.style.backgroundColor = '#FF3B30'; btnM.style.color = 'white'; count++;
                 } else { btnM.classList.remove('active-med', 'active-red'); btnM.style.backgroundColor = '#E1E1E6'; btnM.style.color = '#685A4E'; }
+            }
+
+            const btnN = document.getElementById('constip-btn-n');
+            if(btnN) {
+                if(meds_n.includes(btnN.getAttribute('data-med')) || meds_n.includes('*便祕藥*(白圓)')) {
+                    btnN.classList.add('active-med', 'active-red'); btnN.style.backgroundColor = '#FF3B30'; btnN.style.color = 'white'; count++;
+                } else { btnN.classList.remove('active-med', 'active-red'); btnN.style.backgroundColor = '#E1E1E6'; btnN.style.color = '#685A4E'; }
             }
 
             const btnE = document.getElementById('constip-btn-e');
@@ -644,9 +703,10 @@
     window.saveMeds = async () => {
         const getActive = (selector) => Array.from(document.querySelectorAll(selector)).filter(el => el.classList.contains('active-med')).map(el => el.getAttribute('data-med'));
         const meds_m = getActive('#med-options-m .med-tag');
+        const meds_n = getActive('#med-options-n .med-tag');
         const meds_e = getActive('#med-options-e .med-tag');
 
-        await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), { meds_m, meds_e, constip_count: constipCount }, { merge: true });
+        await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), { meds_m, meds_n, meds_e, constip_count: constipCount }, { merge: true });
         
         document.getElementById('meds-edit-area').classList.add('hidden');
         document.getElementById('meds-display-area').classList.remove('hidden');
