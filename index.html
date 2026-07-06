@@ -53,13 +53,18 @@
     
     .med-time-bar { padding: 14px; background: #E3E3E8; border-radius: 14px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.3s; color: #666; }
     .med-time-bar.active { background: var(--morandi-purple); color: white; box-shadow: 0 4px 12px rgba(150, 146, 175, 0.4); }
-    .med-options-box { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 5px; }
+    .med-options-box { display: flex; flex-wrap: wrap; gap: 12px; padding: 15px 5px; }
 
-    .med-tag { display: inline-block; background: #E1E1E6; color: #685A4E; padding: 10px 14px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+    .med-tag { display: inline-block; background: #E1E1E6; color: #685A4E; padding: 10px 14px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent; position: relative; }
     .med-constip { border: 2px solid #FF3B30 !important; color: #FF3B30; }
     .constip-locked { background: #FFD5D5 !important; color: #999 !important; border-color: #CCC !important; pointer-events: none; }
     .warning-text { color: #FF3B30; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; display: block; text-align: center; background: #FFF0F0; padding: 8px; border-radius: 12px;}
 
+    /* 藥品編輯與刪除按鈕設計 */
+    .med-btn { position: absolute; width: 22px; height: 22px; border-radius: 50%; color: white; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.25); border: 1.5px solid white; transition: 0.2s; }
+    .med-del { top: -8px; left: -8px; background: #FF3B30; }
+    .med-edit { top: -8px; right: -8px; background: #007AFF; }
+    
     .btn-save { width: 100%; padding: 15px; border-radius: 18px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     
     .scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; }
@@ -137,6 +142,7 @@
                 <div class="input-item"><label>舒張壓</label><input type="number" id="v-dia"></div>
                 <div class="input-item"><label>脈搏</label><input type="number" id="v-hr"></div>
                 <div class="input-item"><label>血糖</label><input type="number" id="v-sugar"></div>
+                <div class="input-item"><label>血氧</label><input type="number" id="v-spo2"></div>
             </div>
             <div class="input-row">
                 <div class="input-item"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
@@ -182,20 +188,69 @@
                 </div>
 
                 <div id="med-options-m" class="med-options-box">
-                    <span class="med-tag" onclick="toggleMed(this)">腦思坦(液體)</span>
-                    <span class="med-tag" onclick="toggleMed(this)">失智症(白長橢圓)</span>
-                    <span class="med-tag" onclick="toggleMed(this)">胃藥(黃圓)</span>
-                    <span class="med-tag" onclick="toggleMed(this)">抗中風藥(粉紅圓)</span>
-                    <span class="med-tag" onclick="toggleMed(this)">穩定心衰竭藥(白圓凸)</span>
-                    <span class="med-tag med-constip" id="constip-btn-m" onclick="toggleConstip(this)">*便祕藥*(白圓)</span>
+                    <span class="med-tag" data-med="腦思坦(液體)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">腦思坦(液體)</span>
+                    </span>
+                    <span class="med-tag" data-med="失智症(白長橢圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">失智症(白長橢圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="胃藥(黃圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">胃藥(黃圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="抗中風藥(粉紅圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">抗中風藥(粉紅圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="穩定心衰竭藥(白圓凸)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">穩定心衰竭藥(白圓凸)</span>
+                    </span>
+                    <span class="med-tag med-constip" id="constip-btn-m" data-med="*便祕藥*(白圓)" onclick="toggleConstip(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">*便祕藥*(白圓)</span>
+                    </span>
                 </div>
 
                 <div id="med-options-e" class="med-options-box hidden">
-                    <span class="med-tag med-constip" id="constip-btn-e" onclick="toggleConstip(this)">*便祕藥*(白圓)</span>
-                    <span class="med-tag" onclick="toggleMed(this)">失智症(白長橢圓)</span>
-                    <span class="med-tag" onclick="toggleMed(this)">高血壓藥(小圓粉)</span>
-                    <span class="med-tag" onclick="toggleMed(this)">精神科綜合藥(白橢圓)</span>
-                    <span class="med-tag" onclick="toggleMed(this)">胃藥(黃圓)</span>
+                    <span class="med-tag med-constip" id="constip-btn-e" data-med="*便祕藥*(白圓)" onclick="toggleConstip(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">*便祕藥*(白圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="失智症(白長橢圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">失智症(白長橢圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="高血壓藥(小圓粉)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">高血壓藥(小圓粉)</span>
+                    </span>
+                    <span class="med-tag" data-med="精神科綜合藥(白橢圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">精神科綜合藥(白橢圓)</span>
+                    </span>
+                    <span class="med-tag" data-med="胃藥(黃圓)" onclick="toggleMed(this)">
+                        <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                        <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                        <span class="med-text">胃藥(黃圓)</span>
+                    </span>
+                </div>
+
+                <div style="margin-top: 15px; padding: 0 5px; display: flex; gap: 8px;">
+                    <input type="text" id="custom-med-input" placeholder="其他：自行填寫用藥名稱" style="flex:1; padding:10px 14px; border-radius:12px; border:1px solid #D1D1D6; outline:none; font-size:0.9rem;">
+                    <button onclick="addCustomMed()" style="background:var(--morandi-purple); color:white; border:none; border-radius:12px; padding:0 20px; font-weight:bold; cursor:pointer;">新增</button>
                 </div>
             </div>
             <button class="btn-save" style="background:var(--morandi-purple); color:white;" onclick="saveMeds()">✔ 儲存用藥紀錄</button>
@@ -243,7 +298,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc, updateDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -296,6 +351,7 @@
                     <div style="margin:8px 0;">${p.text}</div>
                     <div style="margin-top:10px; display:flex; gap:15px;">
                         <span onclick="togglePin('${type}','${p.docId}', ${p.pinned || false})" style="color:#FF8C00; font-size:0.75rem; cursor:pointer; font-weight:bold;">${p.pinned ? '取消' : '📌置頂'}</span>
+                        <span onclick="editPost('${type}','${p.docId}')" style="color:#007AFF; font-size:0.75rem; cursor:pointer; font-weight:bold;">編輯</span>
                         <span onclick="deletePost('${type}','${p.docId}')" style="color:red; font-size:0.75rem; cursor:pointer; font-weight:bold;">刪除</span>
                     </div>
                 </div>`).join('') || '<div style="color:#888; padding:20px;">尚無紀錄</div>';
@@ -304,6 +360,22 @@
 
     window.togglePin = async (type, docId, cur) => await updateDoc(doc(db, type + "s", docId), { pinned: !cur });
     window.deletePost = async (type, docId) => { if(confirm("確定刪除？")) await deleteDoc(doc(db, type + "s", docId)); };
+    
+    window.editPost = async (type, docId) => {
+        try {
+            const docRef = doc(db, type + "s", docId);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                const currentText = snap.data().text;
+                const newText = prompt("請編輯內容：", currentText);
+                if (newText !== null && newText.trim() !== "") {
+                    await updateDoc(docRef, { text: newText });
+                }
+            }
+        } catch (e) {
+            alert("編輯失敗：" + e);
+        }
+    };
 
     window.addPost = async (type) => {
         const role = (type === 'notice') ? curNoticeRole : curNoteRole;
@@ -371,16 +443,108 @@
         }
         updateConstipUI();
     };
+    
+    // 藥品刪除與編輯專用功能
+    window.deleteMed = (event, tagElement) => {
+        event.stopPropagation();
+        if (tagElement.classList.contains('med-constip')) {
+            alert("⚠️ 系統預設重要藥品，為確保安全防護機制，不允許刪除！");
+            return;
+        }
+        if (confirm("確定要刪除此藥品選項嗎？")) {
+            tagElement.remove();
+        }
+    };
+
+    window.editMed = (event, tagElement) => {
+        event.stopPropagation();
+        if (tagElement.classList.contains('med-constip')) {
+            alert("⚠️ 系統預設重要藥品，為確保安全防護機制，不允許修改名稱！");
+            return;
+        }
+        const oldMed = tagElement.getAttribute('data-med');
+        const newMed = prompt("請修改藥品名稱：", oldMed);
+        if (newMed !== null && newMed.trim() !== "") {
+            tagElement.setAttribute('data-med', newMed.trim());
+            const txtNode = tagElement.querySelector('.med-text');
+            if (txtNode) txtNode.innerText = newMed.trim();
+        }
+    };
+
+    window.addCustomMed = () => {
+        const input = document.getElementById('custom-med-input');
+        const val = input.value.trim();
+        if(!val) return;
+        const time = document.getElementById('tab-m').classList.contains('active') ? 'm' : 'e';
+        const container = document.getElementById(`med-options-${time}`);
+        
+        let exists = false;
+        container.querySelectorAll('.med-tag').forEach(el => {
+            if (el.getAttribute('data-med') === val) exists = true;
+        });
+        
+        if (!exists) {
+            const span = document.createElement('span');
+            span.className = 'med-tag active-med';
+            span.setAttribute('data-med', val);
+            span.style.backgroundColor = '#8BA8A1';
+            span.style.color = 'white';
+            span.onclick = function() { toggleMed(this); };
+            span.innerHTML = `
+                <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                <span class="med-text">${val}</span>
+            `;
+            container.appendChild(span);
+        } else {
+            container.querySelectorAll('.med-tag').forEach(el => {
+                if (el.getAttribute('data-med') === val) {
+                    el.classList.add('active-med');
+                    el.style.backgroundColor = '#8BA8A1';
+                    el.style.color = 'white';
+                }
+            });
+        }
+        input.value = '';
+    };
+
+    function ensureMedTagExists(containerId, medName) {
+        const container = document.getElementById(containerId);
+        let exists = false;
+        container.querySelectorAll('.med-tag').forEach(el => {
+            if (el.getAttribute('data-med') === medName) exists = true;
+        });
+        if (!exists) {
+            const span = document.createElement('span');
+            span.className = 'med-tag';
+            span.setAttribute('data-med', medName);
+            if (medName.includes('便祕藥')) {
+                span.classList.add('med-constip');
+                span.id = containerId === 'med-options-m' ? 'constip-btn-m' : 'constip-btn-e';
+                span.onclick = function() { toggleConstip(this); };
+            } else {
+                span.onclick = function() { toggleMed(this); };
+            }
+            span.innerHTML = `
+                <div class="med-btn med-del" onclick="deleteMed(event, this.parentElement)">X</div>
+                <div class="med-btn med-edit" onclick="editMed(event, this.parentElement)">✎</div>
+                <span class="med-text">${medName}</span>
+            `;
+            container.appendChild(span);
+        }
+    }
 
     function updateConstipUI() {
         ['constip-btn-m', 'constip-btn-e'].forEach(id => {
             const btn = document.getElementById(id);
-            if (constipCount >= 2 && !btn.classList.contains('active-med')) {
+            if (btn && constipCount >= 2 && !btn.classList.contains('active-med')) {
                 btn.classList.add('constip-locked');
-                btn.innerText = "*便祕藥* (次數已滿)";
-            } else {
+                const txt = btn.querySelector('.med-text');
+                if(txt) txt.innerText = "*便祕藥* (次數已滿)";
+            } else if (btn) {
                 btn.classList.remove('constip-locked');
-                btn.innerText = "*便祕藥*(白圓)";
+                const txt = btn.querySelector('.med-text');
+                if(txt) txt.innerText = "*便祕藥*(白圓)";
             }
         });
     }
@@ -394,6 +558,7 @@
             document.getElementById('v-dia').value = modeData.dia || "";
             document.getElementById('v-hr').value = modeData.hr || "";
             document.getElementById('v-sugar').value = modeData.sugar || "";
+            document.getElementById('v-spo2').value = modeData.spo2 || "";
             document.getElementById('v-temp').value = d.temp || "";
             document.getElementById('v-water').value = d.water || "";
             document.getElementById('v-stool').value = d.stool || "";
@@ -409,6 +574,10 @@
             const meds_m = d.meds_m || [];
             const meds_e = d.meds_e || [];
             
+            // 確保自訂的藥品 Tag 存在於編輯區
+            meds_m.forEach(m => ensureMedTagExists('med-options-m', m));
+            meds_e.forEach(m => ensureMedTagExists('med-options-e', m));
+            
             // 渲染顯示區域
             document.getElementById('med-morning-list').innerHTML = meds_m.map(m => {
                 const isConstip = m.includes('便祕藥');
@@ -422,25 +591,29 @@
 
             // 還原編輯區塊一般藥品狀態
             document.querySelectorAll('#med-options-m .med-tag:not(.med-constip)').forEach(el => {
-                if(meds_m.includes(el.innerText)) { el.classList.add('active-med'); el.style.backgroundColor = '#8BA8A1'; el.style.color = 'white'; }
+                if(meds_m.includes(el.getAttribute('data-med'))) { el.classList.add('active-med'); el.style.backgroundColor = '#8BA8A1'; el.style.color = 'white'; }
                 else { el.classList.remove('active-med'); el.style.backgroundColor = '#E1E1E6'; el.style.color = '#685A4E'; }
             });
             document.querySelectorAll('#med-options-e .med-tag:not(.med-constip)').forEach(el => {
-                if(meds_e.includes(el.innerText)) { el.classList.add('active-med'); el.style.backgroundColor = '#8BA8A1'; el.style.color = 'white'; }
+                if(meds_e.includes(el.getAttribute('data-med'))) { el.classList.add('active-med'); el.style.backgroundColor = '#8BA8A1'; el.style.color = 'white'; }
                 else { el.classList.remove('active-med'); el.style.backgroundColor = '#E1E1E6'; el.style.color = '#685A4E'; }
             });
 
             // 還原便祕藥狀態與計數
             let count = 0;
             const btnM = document.getElementById('constip-btn-m');
-            if(meds_m.includes(btnM.innerText) || meds_m.includes('*便祕藥*(白圓)')) {
-                btnM.classList.add('active-med', 'active-red'); btnM.style.backgroundColor = '#FF3B30'; btnM.style.color = 'white'; count++;
-            } else { btnM.classList.remove('active-med', 'active-red'); btnM.style.backgroundColor = '#E1E1E6'; btnM.style.color = '#685A4E'; }
+            if(btnM) {
+                if(meds_m.includes(btnM.getAttribute('data-med')) || meds_m.includes('*便祕藥*(白圓)')) {
+                    btnM.classList.add('active-med', 'active-red'); btnM.style.backgroundColor = '#FF3B30'; btnM.style.color = 'white'; count++;
+                } else { btnM.classList.remove('active-med', 'active-red'); btnM.style.backgroundColor = '#E1E1E6'; btnM.style.color = '#685A4E'; }
+            }
 
             const btnE = document.getElementById('constip-btn-e');
-            if(meds_e.includes(btnE.innerText) || meds_e.includes('*便祕藥*(白圓)')) {
-                btnE.classList.add('active-med', 'active-red'); btnE.style.backgroundColor = '#FF3B30'; btnE.style.color = 'white'; count++;
-            } else { btnE.classList.remove('active-med', 'active-red'); btnE.style.backgroundColor = '#E1E1E6'; btnE.style.color = '#685A4E'; }
+            if(btnE) {
+                if(meds_e.includes(btnE.getAttribute('data-med')) || meds_e.includes('*便祕藥*(白圓)')) {
+                    btnE.classList.add('active-med', 'active-red'); btnE.style.backgroundColor = '#FF3B30'; btnE.style.color = 'white'; count++;
+                } else { btnE.classList.remove('active-med', 'active-red'); btnE.style.backgroundColor = '#E1E1E6'; btnE.style.color = '#685A4E'; }
+            }
             
             constipCount = count;
             updateConstipUI();
@@ -455,7 +628,7 @@
     }
 
     window.saveVitals = async () => {
-        const updateObj = { [currentVitalMode]: { sys: document.getElementById('v-sys').value, dia: document.getElementById('v-dia').value, hr: document.getElementById('v-hr').value, sugar: document.getElementById('v-sugar').value }, temp: document.getElementById('v-temp').value, water: document.getElementById('v-water').value, stool: document.getElementById('v-stool').value, urine: document.getElementById('v-urine').value };
+        const updateObj = { [currentVitalMode]: { sys: document.getElementById('v-sys').value, dia: document.getElementById('v-dia').value, hr: document.getElementById('v-hr').value, sugar: document.getElementById('v-sugar').value, spo2: document.getElementById('v-spo2').value }, temp: document.getElementById('v-temp').value, water: document.getElementById('v-water').value, stool: document.getElementById('v-stool').value, urine: document.getElementById('v-urine').value };
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), updateObj, { merge: true });
         document.getElementById('vitals-box').classList.add('locked-area');
         document.getElementById('vitals-box').classList.remove('is-editing');
@@ -469,7 +642,7 @@
     };
 
     window.saveMeds = async () => {
-        const getActive = (selector) => Array.from(document.querySelectorAll(selector)).filter(el => el.classList.contains('active-med')).map(el => el.innerText);
+        const getActive = (selector) => Array.from(document.querySelectorAll(selector)).filter(el => el.classList.contains('active-med')).map(el => el.getAttribute('data-med'));
         const meds_m = getActive('#med-options-m .med-tag');
         const meds_e = getActive('#med-options-e .med-tag');
 
@@ -531,10 +704,10 @@
         dayChart = new Chart(ctx, { 
             type: 'bar', 
             data: { 
-                labels: ['收縮壓', '舒張壓', '脈搏', '血糖'], 
+                labels: ['收縮壓', '舒張壓', '脈搏', '血糖', '血氧'], 
                 datasets: [
-                    { label: '早上', data: [m.sys, m.dia, m.hr, m.sugar], backgroundColor: ['#8DA1B9', '#8DA1B9', '#8DA1B9', 'var(--rose-red)'], order: 1 }, 
-                    { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar], backgroundColor: ['#5D7A99', '#5D7A99', '#5D7A99', 'var(--rose-red-dark)'], order: 1 }
+                    { label: '早上', data: [m.sys, m.dia, m.hr, m.sugar, m.spo2], backgroundColor: ['#8DA1B9', '#8DA1B9', '#8DA1B9', 'var(--rose-red)', 'var(--morandi-green)'], order: 1 }, 
+                    { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar, e.spo2], backgroundColor: ['#5D7A99', '#5D7A99', '#5D7A99', 'var(--rose-red-dark)', '#5C7872'], order: 1 }
                 ] 
             }, 
             options: { 
@@ -588,7 +761,7 @@
             dates.push(`${yyyy}-${mm}-${dd}`);
         }
 
-        const sysData = [], diaData = [], sugarData = [];
+        const sysData = [], diaData = [], sugarData = [], spo2Data = [];
         const snap = await getDocs(collection(db, "daily_records"));
         const dataMap = {}; snap.forEach(doc => dataMap[doc.id] = doc.data());
 
@@ -596,8 +769,9 @@
             const d = dataMap[dStr];
             const avg = (f) => { const ms = d?.morning?.[f]||0, es = d?.evening?.[f]||0; return ms && es ? (Number(ms)+Number(es))/2 : (ms || es || null); };
             sysData.push(avg('sys'));
-            diaData.push(avg('dia')); // 新增舒張壓進入趨勢圖
+            diaData.push(avg('dia')); 
             sugarData.push(avg('sugar'));
+            spo2Data.push(avg('spo2'));
         });
 
         const ctx = document.getElementById('weekChart').getContext('2d');
@@ -610,8 +784,9 @@
                     { label: '收縮壓基準', data: Array(7).fill(140), borderColor: '#8B0000', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false },
                     { label: '舒張壓基準', data: Array(7).fill(90), borderColor: '#4A0000', borderDash: [5,5], borderWidth: 1.5, pointRadius: 0, fill: false },
                     { label: '收縮壓', data: sysData, borderColor: '#B07D7D', tension: 0.1, spanGaps: true }, 
-                    { label: '舒張壓', data: diaData, borderColor: '#8DA1B9', tension: 0.1, spanGaps: true }, // 新增的舒張壓線條
-                    { label: '血糖', data: sugarData, borderColor: 'var(--rose-red)', showLine: false, pointStyle: 'line', pointRadius: 15, borderWidth: 4, spanGaps: true }
+                    { label: '舒張壓', data: diaData, borderColor: '#8DA1B9', tension: 0.1, spanGaps: true },
+                    { label: '血糖', data: sugarData, borderColor: 'var(--rose-red)', showLine: false, pointStyle: 'line', pointRadius: 15, borderWidth: 4, spanGaps: true },
+                    { label: '血氧', data: spo2Data, borderColor: '#8BA8A1', tension: 0.1, spanGaps: true }
                 ] 
             }, 
             options: { 
