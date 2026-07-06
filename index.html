@@ -50,7 +50,7 @@
 
     /* 藥品專用設計 */
     .med-time-label { font-weight: bold; font-size: 1rem; margin-bottom: 8px; color: var(--text-main); display: block; background: #E3E3E8; padding: 10px; border-radius: 12px; text-align: center; }
-    .med-display-box { background: #F8F8F8; padding: 12px; border-radius: 18px; min-height: 45px; margin-bottom: 15px; border: 1px dashed var(--morandi-purple); font-size: 0.9rem; }
+    .med-display-box { background: #F8F8F8; padding: 12px; border-radius: 18px; min-height: 45px; margin-bottom: 15px; border: 1px dashed var(--morandi-purple); font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 8px; }
     
     .med-time-bar { padding: 14px 10px; background: #E3E3E8; border-radius: 14px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.3s; color: #666; font-size: 0.9rem;}
     .med-time-bar.active { background: var(--morandi-purple); color: white; box-shadow: 0 4px 12px rgba(150, 146, 175, 0.4); }
@@ -132,30 +132,67 @@
 
     <div class="card" style="border: 2px solid var(--morandi-blue);">
         <div class="section-title">📊 生理數值 📊</div>
-        <button class="edit-btn" onclick="unlock('vitals-box')">✎ 編輯</button>
-        <div class="vital-tabs">
-            <div class="v-tab active" onclick="switchVitalTab('morning')">早上紀錄</div>
-            <div class="v-tab" onclick="switchVitalTab('evening')">晚上紀錄</div>
-        </div>
-        <div id="vitals-box" class="locked-area">
-            <div class="input-row">
-                <div class="input-item"><label>收縮壓</label><input type="number" id="v-sys"></div>
-                <div class="input-item"><label>舒張壓</label><input type="number" id="v-dia"></div>
-                <div class="input-item"><label>脈搏</label><input type="number" id="v-hr"></div>
-                <div class="input-item"><label>血糖</label><input type="number" id="v-sugar"></div>
-                <div class="input-item"><label>血氧</label><input type="number" id="v-spo2"></div>
-                <div class="input-item"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
+        <button class="edit-btn" id="vitals-edit-btn" onclick="unlockVitals()">✎ 編輯</button>
+        
+        <div id="vitals-display-area">
+            <div style="margin-bottom: 15px;">
+                <div class="med-time-label" style="background:var(--morandi-blue); color:white;">☀️ 早上紀錄</div>
+                <div class="med-display-box" id="vital-morning-list" style="border-color:var(--morandi-blue);"></div>
             </div>
-            <div class="input-row">
-                <div class="input-item"><label>喝水量</label><input type="number" id="v-water"></div>
-                <div class="input-item"><label>大號</label><input type="number" id="v-stool"></div>
-                <div class="input-item"><label>小號</label><input type="number" id="v-urine"></div>
+            <div style="margin-bottom: 15px;">
+                <div class="med-time-label" style="background:var(--morandi-blue); color:white;">☀️ 中午紀錄</div>
+                <div class="med-display-box" id="vital-noon-list" style="border-color:var(--morandi-blue);"></div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <div class="med-time-label" style="background:var(--morandi-blue); color:white;">🌙 晚上紀錄</div>
+                <div class="med-display-box" id="vital-evening-list" style="border-color:var(--morandi-blue);"></div>
+            </div>
+            <div>
+                <div class="med-time-label" style="background:var(--morandi-blue); color:white;">📝 全天綜合紀錄</div>
+                <div class="med-display-box" id="vital-day-list" style="border-color:var(--morandi-blue);"></div>
             </div>
         </div>
-        <button class="btn-save" style="background:var(--morandi-blue); color:white;" onclick="saveVitals()">✔ 儲存並同步雲端</button>
+
+        <div id="vitals-edit-area" class="hidden">
+            <div class="vital-tabs">
+                <div id="v-tab-m" class="v-tab active" onclick="switchVitalTab('morning')">早上紀錄</div>
+                <div id="v-tab-n" class="v-tab" onclick="switchVitalTab('noon')">中午紀錄</div>
+                <div id="v-tab-e" class="v-tab" onclick="switchVitalTab('evening')">晚上紀錄</div>
+            </div>
+            <div id="vitals-box">
+                <div id="vitals-edit-m" class="input-row">
+                    <div class="input-item"><label>收縮壓</label><input type="number" id="v-m-sys"></div>
+                    <div class="input-item"><label>舒張壓</label><input type="number" id="v-m-dia"></div>
+                    <div class="input-item"><label>脈搏</label><input type="number" id="v-m-hr"></div>
+                    <div class="input-item"><label>血糖</label><input type="number" id="v-m-sugar"></div>
+                    <div class="input-item"><label>血氧</label><input type="number" id="v-m-spo2"></div>
+                </div>
+                <div id="vitals-edit-n" class="input-row hidden">
+                    <div class="input-item"><label>收縮壓</label><input type="number" id="v-n-sys"></div>
+                    <div class="input-item"><label>舒張壓</label><input type="number" id="v-n-dia"></div>
+                    <div class="input-item"><label>脈搏</label><input type="number" id="v-n-hr"></div>
+                    <div class="input-item"><label>血糖</label><input type="number" id="v-n-sugar"></div>
+                    <div class="input-item"><label>血氧</label><input type="number" id="v-n-spo2"></div>
+                </div>
+                <div id="vitals-edit-e" class="input-row hidden">
+                    <div class="input-item"><label>收縮壓</label><input type="number" id="v-e-sys"></div>
+                    <div class="input-item"><label>舒張壓</label><input type="number" id="v-e-dia"></div>
+                    <div class="input-item"><label>脈搏</label><input type="number" id="v-e-hr"></div>
+                    <div class="input-item"><label>血糖</label><input type="number" id="v-e-sugar"></div>
+                    <div class="input-item"><label>血氧</label><input type="number" id="v-e-spo2"></div>
+                </div>
+                <div class="input-row" style="border-top:1px dashed #ccc; padding-top:15px; margin-top:15px;">
+                    <div class="input-item"><label>體溫</label><input type="number" step="0.1" id="v-temp"></div>
+                    <div class="input-item"><label>喝水量</label><input type="number" id="v-water"></div>
+                    <div class="input-item"><label>大號</label><input type="number" id="v-stool"></div>
+                    <div class="input-item"><label>小號</label><input type="number" id="v-urine"></div>
+                </div>
+            </div>
+            <button class="btn-save" style="background:var(--morandi-blue); color:white;" onclick="saveVitals()">✔ 儲存並同步雲端</button>
+        </div>
         
         <div style="margin-top:30px;">
-            <div class="chart-title">當日早晚數值對比</div>
+            <div class="chart-title">當日早午晚數值對比</div>
             <canvas id="dayChart" style="max-height:180px;"></canvas>
         </div>
         <div style="margin-top:40px; border-top:1px dashed #ccc; padding-top:20px;">
@@ -428,16 +465,42 @@
         if(type === 'notice') curNoticeRole = el.innerText; else curNoteRole = el.innerText;
     };
 
-    // -- 共用解鎖模組 (編輯反白/儲存後恢復) --
+    // -- 共用解鎖模組 --
     window.unlock = (id) => {
         document.getElementById(id).classList.add('is-editing');
         document.getElementById(id).classList.remove('locked-area');
+    };
+
+    // 生理數值專用解鎖邏輯
+    window.unlockVitals = () => {
+        document.getElementById('vitals-display-area').classList.add('hidden');
+        document.getElementById('vitals-edit-area').classList.remove('hidden');
+        document.getElementById('vitals-edit-btn').classList.add('hidden');
+        window.switchVitalTab('morning');
     };
     
     window.unlockMeds = () => {
         document.getElementById('meds-display-area').classList.add('hidden');
         document.getElementById('meds-edit-area').classList.remove('hidden');
         document.getElementById('meds-edit-btn').classList.add('hidden');
+    };
+
+    // -- 生理數值頁籤切換邏輯 --
+    window.switchVitalTab = (mode) => {
+        document.querySelectorAll('#vitals-edit-area .v-tab').forEach(t => t.classList.remove('active'));
+        if (mode === 'morning') document.getElementById('v-tab-m').classList.add('active');
+        if (mode === 'noon') document.getElementById('v-tab-n').classList.add('active');
+        if (mode === 'evening') document.getElementById('v-tab-e').classList.add('active');
+        
+        document.getElementById('vitals-edit-m').classList.add('hidden');
+        document.getElementById('vitals-edit-n').classList.add('hidden');
+        document.getElementById('vitals-edit-e').classList.add('hidden');
+        
+        if (mode === 'morning') document.getElementById('vitals-edit-m').classList.remove('hidden');
+        if (mode === 'noon') document.getElementById('vitals-edit-n').classList.remove('hidden');
+        if (mode === 'evening') document.getElementById('vitals-edit-e').classList.remove('hidden');
+        
+        currentVitalMode = mode;
     };
 
     // -- 藥品編輯邏輯 --
@@ -590,20 +653,74 @@
         });
     }
 
+    // -- 雲端即時同步核心數據 --
     async function syncData(date) {
         onSnapshot(doc(db, "daily_records", date), (snap) => {
             const d = snap.data() || {};
-            // 讀取生理數值
-            const modeData = d[currentVitalMode] || {};
-            document.getElementById('v-sys').value = modeData.sys || "";
-            document.getElementById('v-dia').value = modeData.dia || "";
-            document.getElementById('v-hr').value = modeData.hr || "";
-            document.getElementById('v-sugar').value = modeData.sugar || "";
-            document.getElementById('v-spo2').value = modeData.spo2 || "";
+            
+            // 讀取生理數值各時段資料
+            const m = d.morning || {};
+            const n = d.noon || {};
+            const e = d.evening || {};
+            
+            // 給編輯欄位賦值
+            document.getElementById('v-m-sys').value = m.sys || "";
+            document.getElementById('v-m-dia').value = m.dia || "";
+            document.getElementById('v-m-hr').value = m.hr || "";
+            document.getElementById('v-m-sugar').value = m.sugar || "";
+            document.getElementById('v-m-spo2').value = m.spo2 || "";
+            
+            document.getElementById('v-n-sys').value = n.sys || "";
+            document.getElementById('v-n-dia').value = n.dia || "";
+            document.getElementById('v-n-hr').value = n.hr || "";
+            document.getElementById('v-n-sugar').value = n.sugar || "";
+            document.getElementById('v-n-spo2').value = n.spo2 || "";
+            
+            document.getElementById('v-e-sys').value = e.sys || "";
+            document.getElementById('v-e-dia').value = e.dia || "";
+            document.getElementById('v-e-hr').value = e.hr || "";
+            document.getElementById('v-e-sugar').value = e.sugar || "";
+            document.getElementById('v-e-spo2').value = e.spo2 || "";
+            
             document.getElementById('v-temp').value = d.temp || "";
             document.getElementById('v-water').value = d.water || "";
             document.getElementById('v-stool').value = d.stool || "";
             document.getElementById('v-urine').value = d.urine || "";
+            
+            // 渲染顯示區域功能 (僅呈現有填寫的欄位項目)
+            const renderVitalTags = (dataObj) => {
+                const fields = [
+                    {key: 'sys', label: '收縮壓'}, {key: 'dia', label: '舒張壓'},
+                    {key: 'hr', label: '脈搏'}, {key: 'sugar', label: '血糖'}, {key: 'spo2', label: '血氧'}
+                ];
+                let html = '';
+                fields.forEach(f => {
+                    if (dataObj[f.key]) {
+                        let customBg = 'background:var(--morandi-blue);';
+                        // 血氧警訊防護變色機制
+                        if (f.key === 'spo2') {
+                            const val = Number(dataObj[f.key]);
+                            if (val > 90) customBg = 'background:#007AFF;';      // 大於90藍色系
+                            else if (val === 90) customBg = 'background:#FF2D55;'; // 等於90粉色系
+                            else customBg = 'background:#800020;';                // 小於90酒紅色
+                        }
+                        html += `<span class="med-tag" style="color:white; margin:4px; ${customBg}">${f.label}: ${dataObj[f.key]}</span>`;
+                    }
+                });
+                return html;
+            };
+            
+            document.getElementById('vital-morning-list').innerHTML = renderVitalTags(m) || '<span style="color:#999; font-size:0.85rem;">尚未記錄早上生理數值</span>';
+            document.getElementById('vital-noon-list').innerHTML = renderVitalTags(n) || '<span style="color:#999; font-size:0.85rem;">尚未記錄中午生理數值</span>';
+            document.getElementById('vital-evening-list').innerHTML = renderVitalTags(e) || '<span style="color:#999; font-size:0.85rem;">尚未記錄晚上生理數值</span>';
+            
+            // 全天紀錄標籤渲染
+            let dayHtml = '';
+            if (d.temp) dayHtml += `<span class="med-tag" style="background:var(--morandi-yellow); color:#685A4E; margin:4px;">體溫: ${d.temp} °C</span>`;
+            if (d.water) dayHtml += `<span class="med-tag" style="background:var(--morandi-yellow); color:#685A4E; margin:4px;">喝水量: ${d.water} ml</span>`;
+            if (d.stool) dayHtml += `<span class="med-tag" style="background:var(--morandi-yellow); color:#685A4E; margin:4px;">大號: ${d.stool} 次</span>`;
+            if (d.urine) dayHtml += `<span class="med-tag" style="background:var(--morandi-yellow); color:#685A4E; margin:4px;">小號: ${d.urine} 次</span>`;
+            document.getElementById('vital-day-list').innerHTML = dayHtml || '<span style="color:#999; font-size:0.85rem;">尚未記錄全天綜合數值</span>';
             
             // 讀取復健
             ['m','n','e'].forEach(p => { for(let i=1; i<=3; i++) {
@@ -686,11 +803,40 @@
         });
     }
 
+    // 生理數值全時段同步儲存
     window.saveVitals = async () => {
-        const updateObj = { [currentVitalMode]: { sys: document.getElementById('v-sys').value, dia: document.getElementById('v-dia').value, hr: document.getElementById('v-hr').value, sugar: document.getElementById('v-sugar').value, spo2: document.getElementById('v-spo2').value }, temp: document.getElementById('v-temp').value, water: document.getElementById('v-water').value, stool: document.getElementById('v-stool').value, urine: document.getElementById('v-urine').value };
+        const updateObj = { 
+            morning: { 
+                sys: document.getElementById('v-m-sys').value, 
+                dia: document.getElementById('v-m-dia').value, 
+                hr: document.getElementById('v-m-hr').value, 
+                sugar: document.getElementById('v-m-sugar').value, 
+                spo2: document.getElementById('v-m-spo2').value 
+            },
+            noon: { 
+                sys: document.getElementById('v-n-sys').value, 
+                dia: document.getElementById('v-n-dia').value, 
+                hr: document.getElementById('v-n-hr').value, 
+                sugar: document.getElementById('v-n-sugar').value, 
+                spo2: document.getElementById('v-n-spo2').value 
+            },
+            evening: { 
+                sys: document.getElementById('v-e-sys').value, 
+                dia: document.getElementById('v-e-dia').value, 
+                hr: document.getElementById('v-e-hr').value, 
+                sugar: document.getElementById('v-e-sugar').value, 
+                spo2: document.getElementById('v-e-spo2').value 
+            },
+            temp: document.getElementById('v-temp').value, 
+            water: document.getElementById('v-water').value, 
+            stool: document.getElementById('v-stool').value, 
+            urine: document.getElementById('v-urine').value 
+        };
         await setDoc(doc(db, "daily_records", document.getElementById('date-picker').value), updateObj, { merge: true });
-        document.getElementById('vitals-box').classList.add('locked-area');
-        document.getElementById('vitals-box').classList.remove('is-editing');
+        
+        document.getElementById('vitals-edit-area').classList.add('hidden');
+        document.getElementById('vitals-display-area').classList.remove('hidden');
+        document.getElementById('vitals-edit-btn').classList.remove('hidden');
     };
 
     window.saveRehab = async () => {
@@ -713,12 +859,6 @@
         document.getElementById('meds-edit-btn').classList.remove('hidden');
     };
 
-    window.switchVitalTab = (mode) => {
-        document.querySelectorAll('.v-tab').forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active'); currentVitalMode = mode;
-        syncData(document.getElementById('date-picker').value);
-    };
-
     window.changeDate = (n) => {
         let d = new Date(document.getElementById('date-picker').value);
         d.setDate(d.getDate() + n);
@@ -726,15 +866,12 @@
         syncData(document.getElementById('date-picker').value);
     };
 
-    // 自訂 Day Chart 基準線 Plugin
+    // 自訂 Day Chart 基準線 Plugin (相容動態標籤右端寬度調整)
     const dayBaselinePlugin = {
         id: 'dayBaseline',
         afterDatasetsDraw: (chart) => {
             const {ctx, chartArea: {left, right}, scales: {x, y}} = chart;
             if(!x || !y) return;
-            
-            const catW = x.getPixelForTick(1) - x.getPixelForTick(0);
-            const endX = x.getPixelForTick(1) + catW/2;
             
             ctx.save();
             ctx.lineWidth = 1;
@@ -745,7 +882,7 @@
                 ctx.strokeStyle = color;
                 ctx.beginPath();
                 ctx.moveTo(left, yPos);
-                ctx.lineTo(endX, yPos);
+                ctx.lineTo(right, yPos);
                 ctx.stroke();
             };
             
@@ -755,19 +892,82 @@
         }
     };
 
-    // -- 圖表模組 --
+    // -- 當日早午晚動態對比圖表模組 --
     function updateDayChart(d) {
         const ctx = document.getElementById('dayChart').getContext('2d');
         if(dayChart) dayChart.destroy();
-        const m = d.morning || {}, e = d.evening || {};
+        
+        const m = d.morning || {}, n = d.noon || {}, e = d.evening || {};
+        
+        const allFields = [
+            { key: 'sys', label: '收縮壓' },
+            { key: 'dia', label: '舒張壓' },
+            { key: 'hr', label: '脈搏' },
+            { key: 'sugar', label: '血糖' },
+            { key: 'spo2', label: '血氧' }
+        ];
+        
+        // 依照有填寫數據的項目動態生成標籤，減少空白感
+        const activeLabels = [];
+        const activeKeys = [];
+        allFields.forEach(f => {
+            if (m[f.key] || n[f.key] || e[f.key]) {
+                activeLabels.push(f.label);
+                activeKeys.push(f.key);
+            }
+        });
+        
+        // 防禦機制：若皆無填寫，回歸全顯示狀態
+        if (activeLabels.length === 0) {
+            allFields.forEach(f => {
+                activeLabels.push(f.label);
+                activeKeys.push(f.key);
+            });
+        }
+        
+        const mData = activeKeys.map(k => m[k] ? Number(m[k]) : null);
+        const nData = activeKeys.map(k => n[k] ? Number(n[k]) : null);
+        const eData = activeKeys.map(k => e[k] ? Number(e[k]) : null);
+        
+        // 血氧警訊防護變色處理函式
+        const getSpo2Color = (val) => {
+            if (!val) return '#CCC';
+            const num = Number(val);
+            if (num > 90) return '#4B528C';      // 大於90莫蘭迪藍色系
+            if (num === 90) return '#F681BC';     // 等於90莫蘭迪粉色系
+            return '#EE2114';                    // 小於90莫蘭迪酒紅色
+        };
+        
+        // 生成各時段色彩配置數組
+        const mColors = activeKeys.map(k => {
+            if (k === 'sys' || k === 'dia' || k === 'hr') return '#4B528C';
+            if (k === 'sugar') return '#F681BC';
+            if (k === 'spo2') return getSpo2Color(m.spo2);
+            return '#EE2114';
+        });
+        
+        const nColors = activeKeys.map(k => {
+            if (k === 'sys' || k === 'dia' || k === 'hr') return '#7A91A8'; // 中午配置色調
+            if (k === 'sugar') return '#E57373';
+            if (k === 'spo2') return getSpo2Color(n.spo2);
+            return '#CCC';
+        });
+        
+        const eColors = activeKeys.map(k => {
+            if (k === 'sys' || k === 'dia' || k === 'hr') return '#5D7A99';
+            if (k === 'sugar') return 'var(--rose-red-dark)';
+            if (k === 'spo2') return getSpo2Color(e.spo2);
+            return '#CCC';
+        });
         
         dayChart = new Chart(ctx, { 
             type: 'bar', 
             data: { 
-                labels: ['收縮壓', '舒張壓', '脈搏', '血糖', '血氧'], 
+                labels: activeLabels, 
                 datasets: [
-                    { label: '早上', data: [m.sys, m.dia, m.hr, m.sugar, m.spo2], backgroundColor: ['#8DA1B9', '#8DA1B9', '#8DA1B9', 'var(--rose-red)', 'var(--morandi-green)'], order: 1 }, 
-                    { label: '晚上', data: [e.sys, e.dia, e.hr, e.sugar, e.spo2], backgroundColor: ['#5D7A99', '#5D7A99', '#5D7A99', 'var(--rose-red-dark)', '#5C7872'], order: 1 }
+                    { label: '早上', data: mData, backgroundColor: mColors, order: 1 }, 
+                    { label: '中午', data: nData, backgroundColor: nColors, order: 1 }, 
+                    { label: '晚上', data: eData, backgroundColor: eColors, order: 1 }
                 ] 
             }, 
             options: { 
@@ -802,6 +1002,7 @@
         });
     }
 
+    // -- 一週生理數值對比圖表模組 (全面整合早、中、晚三時段平均值運算) --
     async function updateWeekChart(selectedDate) {
         const [yyyy_str, mm_str, dd_str] = selectedDate.split('-');
         const curr = new Date(yyyy_str, mm_str - 1, dd_str);
@@ -827,7 +1028,15 @@
 
         dates.forEach(dStr => {
             const d = dataMap[dStr];
-            const avg = (f) => { const ms = d?.morning?.[f]||0, es = d?.evening?.[f]||0; return ms && es ? (Number(ms)+Number(es))/2 : (ms || es || null); };
+            // 計算早中晚三時段的綜合加權平均值
+            const avg = (f) => { 
+                const vals = [];
+                if (d?.morning?.[f]) vals.push(Number(d.morning[f]));
+                if (d?.noon?.[f]) vals.push(Number(d.noon[f]));
+                if (d?.evening?.[f]) vals.push(Number(d.evening[f]));
+                if (vals.length === 0) return null;
+                return vals.reduce((sum, currVal) => sum + currVal, 0) / vals.length;
+            };
             sysData.push(avg('sys'));
             diaData.push(avg('dia')); 
             sugarData.push(avg('sugar'));
